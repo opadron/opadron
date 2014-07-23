@@ -1,13 +1,13 @@
 #! /usr/bin/env bash
 
-envget() {
+function envget() {
     while [ -n "$*" ] ; do
         local key="$1" ; shift
         eval 'echo $'"$key"
     done
 }
 
-envset() {
+function envset() {
     while [ -n "$*" ] ; do
         local key="$1" ; shift
         local value="$1" ; shift
@@ -20,7 +20,7 @@ envset() {
     done
 }
 
-envappend() {
+function envappend() {
     local sep=':'
 
     local regex='[\.;:\\/, -]'
@@ -41,7 +41,7 @@ envappend() {
     fi
 }
 
-envpush() {
+function envpush() {
     local sep=':'
 
     local regex='[\.;:\\/, -]'
@@ -61,4 +61,16 @@ envpush() {
         envset "$var" "$val$sep$( envget "$var" )"
     fi
 }
+
+realpath . &> /dev/null
+if [ "$?" '!=' '0' ]; then
+    function realpath() {
+        python -c "$(
+            echo 'import os.path as p'
+            echo 'import sys'
+            echo 'for arg in sys.argv[1:]:'
+            echo '    print p.abspath(arg)'
+        )" $*
+    }
+fi
 

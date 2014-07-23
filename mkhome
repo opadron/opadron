@@ -1,0 +1,21 @@
+#! /usr/bin/env bash
+
+source "$( dirname "$0" )/dot-bashrc.d/commonlib"
+
+src="$( realpath "$( dirname "$( realpath "$0" )" )" )"
+dst="$( realpath . )"
+
+if [ "$src" '=' "$dst" ] ; then
+    echo "error: cannot run $0 from within its own directory" 1>&2
+    exit 1
+fi
+
+cd "$src"
+for path in * ; do
+    if [ "${path:0:4}" '=' 'dot-' ] ; then
+        cp -r "$path" "$dst/.${path:4}"
+    else
+        cp -r "$path" "$dst"
+    fi
+done
+
