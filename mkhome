@@ -12,10 +12,12 @@ fi
 
 cd "$src"
 for path in * ; do
+    local tmp_dst="$dst/$path"
     if [ "${path:0:4}" '=' 'dot-' ] ; then
-        cp -r "$path" "$dst/.${path:4}"
-    else
-        cp -r "$path" "$dst"
+        tmp_dst="$tmp_dst/.${path:4}"
     fi
+
+    rm -rf "$tmp_dst"
+    cp -r "$path" "$tmp_dst"
 done
 

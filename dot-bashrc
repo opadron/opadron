@@ -18,7 +18,7 @@ mod_load() {
         local module="$1"
         shift
 
-        local module_file="$HOME/.bash.d/$module"
+        local module_file="$HOME/.bashrc.d/$module"
         if [ -f "$module_file" ] ; then
             eval 'require_modules_'"$module='1'"
             source "$module_file"
