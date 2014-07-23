@@ -1,0 +1,82 @@
+#! /usr/bin/env bash
+
+function parse_git_branch() {
+    echo "$(
+        git branch 2> /dev/null |
+        sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'
+    )"
+}
+
+function parse_git_branch_head() {
+    if [ -n "$( parse_git_branch )" ] ; then
+        echo '('
+    fi
+}
+
+function parse_git_branch_tail() {
+    if [ -n "$( parse_git_branch )" ] ; then
+        echo ')'
+    fi
+}
+
+function parse_git_branch_space() {
+    if [ -n "$( parse_git_branch )" ] ; then
+        echo ' '
+    fi
+}
+
+p=""
+
+red="\[$( echo -e '\e[0;31m' )\]"
+grn="\[$( echo -e '\e[0;32m' )\]"
+blu="\[$( echo -e '\e[0;34m' )\]"
+cyn="\[$( echo -e '\e[0;36m' )\]"
+
+RED="\[$( echo -e '\e[1;31m' )\]"
+GRN="\[$( echo -e '\e[1;32m' )\]"
+BLU="\[$( echo -e '\e[1;34m' )\]"
+CYN="\[$( echo -e '\e[1;36m' )\]"
+
+RES="\[$( echo -e '\e[0m' )\]"
+
+# date
+p="${p}$blu\`date '+%m'\`"
+p="${p}$BLU\`date '+%d'\`"
+
+# time
+p="${p}$cyn\`date '+%k'\`"
+p="${p}$CYN\`date '+%M'\`"
+p="${p}$RES "
+
+# current git branch
+p="${p}$RED\`parse_git_branch_head\`"
+p="${p}$red\`parse_git_branch\`"
+p="${p}$RED\`parse_git_branch_tail\`"
+p="${p}$RES\`parse_git_branch_space\`"
+
+# machine status
+p="${p}$grn["
+# p="${p}\\u"
+# p="${p}@"
+# p="${p}\\h"
+# p="${p}:"
+p="${p}$GRN\\W"
+p="${p}$grn]"
+p="${p}$RES "
+
+export PS1="$p"
+
+# unset p
+
+unset red
+unset blu
+unset grn
+unset cyn
+
+unset RED
+unset BLU
+unset GRN
+unset CYN
+
+unset RES
+

@@ -1,0 +1,64 @@
+#! /usr/bin/env bash
+
+envget() {
+    while [ -n "$*" ] ; do
+        local key="$1" ; shift
+        eval 'echo $'"$key"
+    done
+}
+
+envset() {
+    while [ -n "$*" ] ; do
+        local key="$1" ; shift
+        local value="$1" ; shift
+
+        if [ -z "$value" ] ; then
+            unset $key
+        else
+            eval "$key="'"'"$value"'"'
+        fi
+    done
+}
+
+envappend() {
+    local sep=':'
+
+    local regex='[\.;:\\/, -]'
+    if [[ "$1" =~ $regex ]] ; then
+        sep="$1" ; shift
+    fi
+
+    local var="$1" ; shift
+    local val="$1" ; shift
+    while [ -n "$*" ] ; do
+        val="$val$sep$1" ; shift
+    done
+
+    if [ -z "$( envget "$var" )" ] ; then
+        envset "$var" "$val"
+    else
+        envset "$var" "$( envget "$var" )$sep$val"
+    fi
+}
+
+envpush() {
+    local sep=':'
+
+    local regex='[\.;:\\/, -]'
+    if [[ "$1" =~ $regex ]] ; then
+        sep="$1" ; shift
+    fi
+
+    local var="$1" ; shift
+    local val="$1" ; shift
+    while [ -n "$*" ] ; do
+        val="$val$sep$1" ; shift
+    done
+
+    if [ -z "$( envget "$var" )" ] ; then
+        envset "$var" "$val"
+    else
+        envset "$var" "$val$sep$( envget "$var" )"
+    fi
+}
+

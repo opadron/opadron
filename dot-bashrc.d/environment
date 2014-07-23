@@ -1,0 +1,16 @@
+#! /usr/bin/env bash
+
+mod_import commonlib
+
+export LOCAL="$HOME/.local"
+
+envpush PATH              "$LOCAL/bin"
+envpush C_INCLUDE_PATH    "$LOCAL/include"
+envpush DYLD_LIBRARY_PATH "$LOCAL/lib"
+envpush LD_LIBRARY_PATH   "$LOCAL/lib"
+envpush LD_RUN_PATH       "$LOCAL/lib"
+envpush NODE_PATH         "$LOCAL/libnode_modules"
+
+export EDITOR='vim'
+export PYTHONSTARTUP="$HOME/.pythonrc.py"
+

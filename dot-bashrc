@@ -1,0 +1,54 @@
+#! /usr/bin/env bash
+
+mod_loaded() {
+    while [ -n "$*" ] ; do
+        local module="$1"
+        shift
+
+        if [ "$( eval 'echo $require_modules_'"$module" )" '!=' '1' ] ; then
+            return 1
+        fi
+    done
+
+    return 0
+}
+
+mod_load() {
+    while [ -n "$*" ] ; do
+        local module="$1"
+        shift
+
+        local module_file="$HOME/.bash.d/$module"
+        if [ -f "$module_file" ] ; then
+            eval 'require_modules_'"$module='1'"
+            source "$module_file"
+        fi
+    done
+}
+
+mod_import() {
+    while [ -n "$*" ] ; do
+        local module="$1"
+        shift
+
+        if mod_loaded "$module" ; then
+            continue
+        else
+            mod_load "$module"
+        fi
+    done
+}
+
+mod_import autoload
+
+# function _x_comp_func() {
+#     local files=(
+#         "$HOME/.local/scripts/$2"*
+#     )
+# 
+#     [[ -e "${files[0]}" ]] &&
+#         COMPREPLY=( "${files[@]##*/}" )
+# }
+# 
+# complete -F _x_comp_func x
+

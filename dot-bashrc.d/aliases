@@ -1,0 +1,15 @@
+#! /usr/bin/env bash
+
+mod_import commonlib
+
+alias ls="ls -GF"
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+
+export PATH="/usr/local/bin:$HOME/.local/bin:$PATH"
+export C_INCLUDE_PATH="/usr/local/include:$HOME/.local/include:$C_INCLUDE_PATH"
+export DYLD_LIBRARY_PATH="/usr/local/include:$HOME/.local/lib:$DYLD_LIBRARY_PATH"
+export LD_RUN_PATH="/usr/local/lib:$HOME/.local/lib:$LD_RUN_PATH"
+export NODE_PATH="/usr/local/lib/node_modules:$HOME/.local/lib/node_modules:$NODE_PATH"
+
