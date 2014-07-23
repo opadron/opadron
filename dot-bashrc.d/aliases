@@ -2,7 +2,14 @@
 
 mod_import commonlib
 
-alias ls="ls -GF"
+ls --color &> /dev/null
+
+if [ "$?" '=' '0' ] ; then
+    alias ls="ls -F --color=auto"
+else
+    alias ls="ls -GF"
+fi
+
 alias ll='ls -alF'
 alias la='ls -A'
 alias l='ls -CF'
