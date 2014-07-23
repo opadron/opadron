@@ -12,7 +12,7 @@ fi
 
 cd "$src"
 for path in * ; do
-    local tmp_dst="$dst/$path"
+    tmp_dst="$dst/$path"
     if [ "${path:0:4}" '=' 'dot-' ] ; then
         tmp_dst="$tmp_dst/.${path:4}"
     fi
