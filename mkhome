@@ -14,7 +14,7 @@ cd "$src"
 for path in * ; do
     tmp_dst="$dst/$path"
     if [ "${path:0:4}" '=' 'dot-' ] ; then
-        tmp_dst="$tmp_dst/.${path:4}"
+        tmp_dst="$dst/.${path:4}"
     fi
 
     rm -rf "$tmp_dst"
