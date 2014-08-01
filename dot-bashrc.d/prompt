@@ -1,5 +1,15 @@
 #! /usr/bin/env bash
 
+function check_sum() {
+    for com in md5 md5sum shasum ; do
+        which "$com" &> /dev/null
+        if [ "$?" '=' '0' ] ; then
+            echo "$*" | "$com"
+            break
+        fi
+    done
+}
+
 function parse_git_branch() {
     echo "$(
         git branch 2> /dev/null |
@@ -42,7 +52,7 @@ function uname_at_host() {
     csum="$hn"
     is_done=0
     while [ "$is_done" '=' '0' ] ; do
-        csum="$( echo "$csum" | md5 )"
+        csum="$( check_sum "$csum" )"
         for ((i=0; i<"${#csum}"; ++i)) ; do
             digit="$(( 0x${csum:$i:1} % 5 ))"
             code="$( eval 'echo $c'"$digit" )"
