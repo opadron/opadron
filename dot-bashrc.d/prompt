@@ -26,6 +26,16 @@ function parse_git_branch_space() {
 }
 
 function uname_at_host() {
+
+    if [ "$USER" '=' 'root' ] ;then
+        blink_fragment='5;'
+    fi
+    c0="\[$( echo -e '\x1b[1;'"$blink_fragment"'37;41m' )\]"
+    c1="\[$( echo -e '\x1b[1;'"$blink_fragment"'37;43m' )\]"
+    c2="\[$( echo -e '\x1b[1;'"$blink_fragment"'37;44m' )\]"
+    c3="\[$( echo -e '\x1b[1;'"$blink_fragment"'37;45m' )\]"
+    c4="\[$( echo -e '\x1b[1;'"$blink_fragment"'37;46m' )\]"
+
     hn="$( hostname )"
     n_ret=0
     ret=""
@@ -34,24 +44,17 @@ function uname_at_host() {
     while [ "$is_done" '=' '0' ] ; do
         csum="$( echo "$csum" | md5 )"
         for ((i=0; i<"${#csum}"; ++i)) ; do
-            digit="$(( 0x${csum:$i:1} % 8 ))"
+            digit="$(( 0x${csum:$i:1} % 5 ))"
             code="$( eval 'echo $c'"$digit" )"
 
             if [ -z "$code" ] ; then
                 continue
             fi
 
-            if   [ "$n_ret" '=' '0' ] ; then
-                ret="$code${USER:0:1}"
-                n_ret="$(( n_ret + 1 ))"
+            ret="$ret$code${USER:$n_ret:1}"
+            n_ret="$(( n_ret + 1 ))"
 
-            elif [ "$n_ret" '=' '1' ] ; then
-                ret="$ret$code@"
-                n_ret="$(( n_ret + 1 ))"
-
-            elif [ "$n_ret" '=' '2' ] ; then
-                ret="$ret$code${hn:0:1}"
-                n_ret="$(( n_ret + 1 ))"
+            if [ "$n_ret" '=' '4' ] ; then
                 is_done=1
                 break
             fi
@@ -63,27 +66,17 @@ function uname_at_host() {
 }
 
 
-red="\[$( echo -e '\e[0;31m' )\]"
-grn="\[$( echo -e '\e[0;32m' )\]"
-blu="\[$( echo -e '\e[0;34m' )\]"
-cyn="\[$( echo -e '\e[0;36m' )\]"
+red="\[$( echo -e '\x1b[0;31m' )\]"
+grn="\[$( echo -e '\x1b[0;32m' )\]"
+blu="\[$( echo -e '\x1b[0;34m' )\]"
+cyn="\[$( echo -e '\x1b[0;36m' )\]"
+                            
+RED="\[$( echo -e '\x1b[1;31m' )\]"
+GRN="\[$( echo -e '\x1b[1;32m' )\]"
+BLU="\[$( echo -e '\x1b[1;34m' )\]"
+CYN="\[$( echo -e '\x1b[1;36m' )\]"
 
-RED="\[$( echo -e '\e[1;31m' )\]"
-GRN="\[$( echo -e '\e[1;32m' )\]"
-BLU="\[$( echo -e '\e[1;34m' )\]"
-CYN="\[$( echo -e '\e[1;36m' )\]"
-
-c0="\[$( echo -e '\e[0;41m' )\]"
-c1="\[$( echo -e '\e[0;42m' )\]"
-c2="\[$( echo -e '\e[0;44m' )\]"
-c3="\[$( echo -e '\e[0;46m' )\]"
-c4="\[$( echo -e '\e[1;41m' )\]"
-c5="\[$( echo -e '\e[1;42m' )\]"
-c6="\[$( echo -e '\e[1;44m' )\]"
-c7="\[$( echo -e '\e[1;46m' )\]"
-
-
-RES="\[$( echo -e '\e[0m' )\]"
+RES="\[$( echo -e '\x1b[0m' )\]"
 
 # date
 p="${p}$blu\`date '+%m'\`"
@@ -95,25 +88,26 @@ p="${p}$CYN\`date '+%M'\`"
 p="${p}$RES "
 
 # machine status
-p="${p}\`uname_at_host\""
+p="${p}`uname_at_host`"
 p="${p}$RES "
 
 # cwd
-p="${p}$grn["
-p="${p}$GRN\\W"
-p="${p}$grn]"
-p="${p}$RES "
+p="${p}$GRN["
+p="${p}$grn\\W"
 
 # current git branch
+p="${p}$RES\`parse_git_branch_space\`"
 p="${p}$RED\`parse_git_branch_head\`"
 p="${p}$red\`parse_git_branch\`"
 p="${p}$RED\`parse_git_branch_tail\`"
-p="${p}$RES\`parse_git_branch_space\`"
+
+p="${p}$GRN]"
+p="${p}$RES "
 
 
 export PS1="$p"
 
-# unset p
+unset p
 
 unset red
 unset blu
@@ -124,17 +118,4 @@ unset RED
 unset BLU
 unset GRN
 unset CYN
-
-unset c0
-unset c1
-unset c2
-unset c3
-unset c4
-unset c5
-unset c6
-unset c7
-
-unset RES
-
-p=""
 
