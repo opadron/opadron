@@ -25,7 +25,43 @@ function parse_git_branch_space() {
     fi
 }
 
-p=""
+function uname_at_host() {
+    hn="$( hostname )"
+    n_ret=0
+    ret=""
+    csum="$hn"
+    is_done=0
+    while [ "$is_done" '=' '0' ] ; do
+        csum="$( echo "$csum" | md5 )"
+        for ((i=0; i<"${#csum}"; ++i)) ; do
+            digit="$(( 0x${csum:$i:1} % 8 ))"
+            code="$( eval 'echo $c'"$digit" )"
+
+            if [ -z "$code" ] ; then
+                continue
+            fi
+
+            if   [ "$n_ret" '=' '0' ] ; then
+                ret="$code${USER:0:1}"
+                n_ret="$(( n_ret + 1 ))"
+
+            elif [ "$n_ret" '=' '1' ] ; then
+                ret="$ret$code@"
+                n_ret="$(( n_ret + 1 ))"
+
+            elif [ "$n_ret" '=' '2' ] ; then
+                ret="$ret$code${hn:0:1}"
+                n_ret="$(( n_ret + 1 ))"
+                is_done=1
+                break
+            fi
+
+        done
+    done
+
+    echo "$ret"
+}
+
 
 red="\[$( echo -e '\e[0;31m' )\]"
 grn="\[$( echo -e '\e[0;32m' )\]"
@@ -36,6 +72,16 @@ RED="\[$( echo -e '\e[1;31m' )\]"
 GRN="\[$( echo -e '\e[1;32m' )\]"
 BLU="\[$( echo -e '\e[1;34m' )\]"
 CYN="\[$( echo -e '\e[1;36m' )\]"
+
+c0="\[$( echo -e '\e[0;41m' )\]"
+c1="\[$( echo -e '\e[0;42m' )\]"
+c2="\[$( echo -e '\e[0;44m' )\]"
+c3="\[$( echo -e '\e[0;46m' )\]"
+c4="\[$( echo -e '\e[1;41m' )\]"
+c5="\[$( echo -e '\e[1;42m' )\]"
+c6="\[$( echo -e '\e[1;44m' )\]"
+c7="\[$( echo -e '\e[1;46m' )\]"
+
 
 RES="\[$( echo -e '\e[0m' )\]"
 
@@ -48,21 +94,22 @@ p="${p}$cyn\`date '+%k'\`"
 p="${p}$CYN\`date '+%M'\`"
 p="${p}$RES "
 
+# machine status
+p="${p}\`uname_at_host\""
+p="${p}$RES "
+
+# cwd
+p="${p}$grn["
+p="${p}$GRN\\W"
+p="${p}$grn]"
+p="${p}$RES "
+
 # current git branch
 p="${p}$RED\`parse_git_branch_head\`"
 p="${p}$red\`parse_git_branch\`"
 p="${p}$RED\`parse_git_branch_tail\`"
 p="${p}$RES\`parse_git_branch_space\`"
 
-# machine status
-p="${p}$grn["
-# p="${p}\\u"
-# p="${p}@"
-# p="${p}\\h"
-# p="${p}:"
-p="${p}$GRN\\W"
-p="${p}$grn]"
-p="${p}$RES "
 
 export PS1="$p"
 
@@ -78,5 +125,16 @@ unset BLU
 unset GRN
 unset CYN
 
+unset c0
+unset c1
+unset c2
+unset c3
+unset c4
+unset c5
+unset c6
+unset c7
+
 unset RES
+
+p=""
 
