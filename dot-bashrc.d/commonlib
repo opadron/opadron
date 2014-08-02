@@ -74,3 +74,22 @@ if [ "$?" '!=' '0' ]; then
     }
 fi
 
+function searchpath() {
+    local path="$( envget $1 )" ; shift
+    local file_name="$1" ; shift
+
+    while [ -n "$path" ] ; do
+        local dir="${path/:*/}"
+        local ndir="${#dir}"
+        path="${path:$(( ndir + 1 ))}"
+
+        test_path="$dir/$file_name"
+        if [ -f "$test_path" ] ; then
+            echo "$test_path"
+            return 0
+        fi
+    done
+
+    return 1
+}
+

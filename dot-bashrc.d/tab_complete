@@ -1,0 +1,18 @@
+#! /usr/bin/env bash
+
+mod_import commonlib
+
+if ! shopt -oq posix; then
+    envappend tc_path "/usr/share/bash-completion"
+    envappend tc_path "/etc"
+
+    tc="$( findpath tc_path bash_completion )"
+
+    if [ "$?" '=' '0' ] ; then
+        source "$tc"
+    fi
+
+    unset tc
+    unset tc_path
+fi
+
