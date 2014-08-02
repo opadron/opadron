@@ -6,7 +6,7 @@ if ! shopt -oq posix; then
     envappend tc_path "/usr/share/bash-completion"
     envappend tc_path "/etc"
 
-    tc="$( findpath tc_path bash_completion )"
+    tc="$( searchpath tc_path bash_completion )"
 
     if [ "$?" '=' '0' ] ; then
         source "$tc"
