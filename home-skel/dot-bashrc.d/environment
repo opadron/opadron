@@ -9,7 +9,7 @@ envpush C_INCLUDE_PATH    "$LOCAL/include"
 envpush DYLD_LIBRARY_PATH "$LOCAL/lib"
 envpush LD_LIBRARY_PATH   "$LOCAL/lib"
 envpush LD_RUN_PATH       "$LOCAL/lib"
-envpush NODE_PATH         "$LOCAL/libnode_modules"
+envpush NODE_PATH         "$LOCAL/lib/node_modules"
 
 export EDITOR='vim'
 export PYTHONSTARTUP="$HOME/.pythonrc.py"
