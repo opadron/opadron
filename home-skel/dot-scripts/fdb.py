@@ -342,7 +342,6 @@ def create_ledger_temp(cur):
     )
 
     tmp_tables_create.add(ret)
-    return ret
 
 def create_bsheet_temp(cur, account=None):
     ret = 'bsheet'
@@ -362,27 +361,16 @@ def create_bsheet_temp(cur, account=None):
         ret += '_' + account_code
 
     if ret not in tmp_tables_create:
-        ledger_temp = create_ledger_temp(cur)
-        cur.execute('SELECT MAX(ldig) FROM ' + ledger_temp)
+        cur.execute('SELECT MAX(ldig) FROM ledger_view')
         maxL = cur.fetchone()[0]
 
-        cur.execute('SELECT MAX(rdig) FROM ' + ledger_temp)
+        cur.execute('SELECT MAX(rdig) FROM ledger_view')
         maxR = cur.fetchone()[0]
 
         def check_account_clause(path):
             return '''
-                (
-                    (
-                        CASE WHEN SA.path LIKE '{path}%'
-                        THEN -A.amt ELSE 0
-                        END
-                    ) +
-                    (
-                        CASE WHEN DA.path LIKE '{path}%'
-                        THEN  A.amt ELSE 0
-                        END
-                    )
-                )
+                ( ( CASE WHEN spath LIKE '{path}%' THEN -amt ELSE 0 END )
+                + ( CASE WHEN dpath LIKE '{path}%' THEN  amt ELSE 0 END ) )
             '''.format(path=path)
 
         def fa(x, l, r, L, R):
@@ -393,7 +381,7 @@ def create_bsheet_temp(cur, account=None):
             cur.execute('''
                 CREATE TEMPORARY TABLE {ret} (
                     "date"       TIMESTAMP,
-                    "tran"       VARCHAR(1024),
+                    "desc"       VARCHAR(1024),
                     "src"        VARCHAR(1024),
                     "dst"        VARCHAR(1024),
                     "A"          VARCHAR(1024),
@@ -404,7 +392,6 @@ def create_bsheet_temp(cur, account=None):
                     "commodity"  VARCHAR(1024),
                     {balances}
                 )
-
             '''.format(
                 ret=ret,
                 balances=',\n'.join(
@@ -415,10 +402,7 @@ def create_bsheet_temp(cur, account=None):
 
             cur.execute('''
                 SELECT
-                    A.date AS date,
-                    A.tran AS tran,
-                    A.src  AS src ,
-                    A.dst  AS dst ,
+                    tid, date, desc, src, dst,
 
                     {formatA} AS AA,
                     {formatL} AS LL,
@@ -426,29 +410,23 @@ def create_bsheet_temp(cur, account=None):
                     {formatE} AS EE,
                     {formatQ} AS QQ,
 
-                    A.ldig AS ldig,
-                    A.rdig AS rdig,
-                    A.com  AS com
+                    ldig, rdig, com
 
-                FROM
-                         {ledger_temp} AS A
-                    JOIN accounts      AS SA ON A.src = SA.code
-                    JOIN accounts      AS DA ON A.dst = DA.code
+                FROM ledger_view
 
                 WHERE
-                        SA.path LIKE '/A%'
-                    OR  SA.path LIKE '/L%'
-                    OR  SA.path LIKE '/I%'
-                    OR  SA.path LIKE '/E%'
-                    OR  SA.path LIKE '/Q%'
+                       spath LIKE '/A%'
+                    OR spath LIKE '/L%'
+                    OR spath LIKE '/I%'
+                    OR spath LIKE '/E%'
+                    OR spath LIKE '/Q%'
 
-                    OR  DA.path LIKE '/A%'
-                    OR  DA.path LIKE '/L%'
-                    OR  DA.path LIKE '/I%'
-                    OR  DA.path LIKE '/E%'
-                    OR  DA.path LIKE '/Q%'
+                    OR dpath LIKE '/A%'
+                    OR dpath LIKE '/L%'
+                    OR dpath LIKE '/I%'
+                    OR dpath LIKE '/E%'
+                    OR dpath LIKE '/Q%'
             '''.format(
-                ledger_temp=ledger_temp,
                 formatA=check_account_clause('/A'),
                 formatL=check_account_clause('/L'),
                 formatI=check_account_clause('/I'),
@@ -457,15 +435,40 @@ def create_bsheet_temp(cur, account=None):
             ))
 
             rows = []
+
+            last_tid = None
+            last_src = None
+
             for (
-                date, tran, src, dst, aa, ll, ii, ee, qq, ldig, rdig, com
+                tid, date, desc, src, dst, aa, ll, ii, ee, qq, ldig, rdig, com
             ) in reversed(
                 cur.fetchall()
             ):
+                if tid == last_tid:
+                    tid = None
+                    date = None
+                    desc = None
+
+                    if src == last_src:
+                        src = None
+                    else:
+                        last_src = src
+
+                else:
+                    last_tid = tid
+                    last_src = src
+
+                for i in range(rdig, maxR):
+                    aa *= 10
+                    ll *= 10
+                    ii *= 10
+                    ee *= 10
+                    qq *= 10
+
                 equity[com] += (aa + ll)
 
                 rows.append((
-                    date, tran, src, dst,
+                    date, desc, src, dst,
                     fa(aa, ldig, rdig, maxL, maxR),
                     fa(ll, ldig, rdig, maxL, maxR),
                     fa(ii, ldig, rdig, maxL, maxR),
@@ -493,7 +496,7 @@ def create_bsheet_temp(cur, account=None):
             cur.execute('''
                 CREATE TEMPORARY TABLE {ret} (
                     "date"      TIMESTAMP,
-                    "tran"      VARCHAR(1024),
+                    "desc"      VARCHAR(1024),
                     "src"       VARCHAR(1024),
                     "dst"       VARCHAR(1024),
                     "debit"     VARCHAR(1024),
@@ -511,41 +514,51 @@ def create_bsheet_temp(cur, account=None):
 
             cur.execute('''
                 SELECT
-                    A.date   AS date ,
-                    A.tran   AS tran ,
-                    A.src    AS src  ,
-                    A.dst    AS dst  ,
-
+                    tid, date, desc, src, dst,
                     {format} AS delta,
+                    ldig, rdig, com
 
-                    A.ldig   AS ldig,
-                    A.rdig   AS rdig,
-                    A.com    AS com
-
-                FROM
-                         {ledger_temp} AS A
-                    JOIN accounts      AS SA ON A.src = SA.code
-                    JOIN accounts      AS DA ON A.dst = DA.code
+                FROM ledger_view
 
                 WHERE
-                        SA.path LIKE '{account}%'
-                    OR  DA.path LIKE '{account}%'
+                        spath LIKE '{account}%'
+                    OR  dpath LIKE '{account}%'
             '''.format(
-                ledger_temp=ledger_temp,
                 account=account_path,
                 format=check_account_clause(account),
             ))
 
             rows = []
+
+            last_tid = None
+            last_src = None
+
             for (
-                date, tran, src, dst, delta, ldig, rdig, com
+                tid, date, desc, src, dst, delta, ldig, rdig, com
             ) in reversed(
                 cur.fetchall()
             ):
+                if tid == last_tid:
+                    tid = None
+                    date = None
+                    desc = None
+
+                    if src == last_src:
+                        src = None
+                    else:
+                        last_src = src
+
+                else:
+                    last_tid = tid
+                    last_src = src
+
+                for i in range(rdig, maxR):
+                    delta *= 10
+
                 equity[com] += delta
 
                 rows.append((
-                    date, tran, src, dst,
+                    date, desc, src, dst,
                     fa(-max(-delta, 0), ldig, rdig, maxL, maxR),
                     fa( max( delta, 0), ldig, rdig, maxL, maxR),
                     com,
@@ -568,8 +581,10 @@ def create_bsheet_temp(cur, account=None):
         tmp_tables_create.add(ret)
 
         if account is None:
-            return ret, tuple(
-                'Date, Transaction, From, To, [A], [L], [I], [E], Prior Equity, Commodity'.split(', ')
+            return ret, (
+                'Date', 'Transaction', 'From', 'To',
+                '[A]', '[L]', '[I]', '[E]',
+                'Prior Equity', 'Commodity',
             ) + tuple('B(' + x + ')' for x in commodities)
         else:
             return ret, tuple(
@@ -765,7 +780,7 @@ def connect(ledger_path):
         break
 
     if cache_hit:
-        with db.serial_connection(ledger_db_path) as conn:
+        with serial_connection(ledger_db_path) as conn:
             yield conn
 
     else:
@@ -788,7 +803,7 @@ def connect(ledger_path):
 
         A, T, C, S, K = ingest(ledger_path)
 
-        with db.serial_connection(ledger_db_path) as conn:
+        with serial_connection(ledger_db_path) as conn:
             with conn() as cur:
                 ensure_tables(cur)
                 ensure_views(cur)
