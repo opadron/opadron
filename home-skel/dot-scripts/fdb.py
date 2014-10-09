@@ -248,7 +248,6 @@ def amount_display(amt, ldig, rdig, maxL, maxR,
 
     if not whole:
         whole = '0'
-        ldig += 1
 
     n = len(whole)
     nm = (mod - (n % mod)) % mod
@@ -261,7 +260,7 @@ def amount_display(amt, ldig, rdig, maxL, maxR,
         amt_disp = frac_sep.join((whole, frac))
 
     return ''.join((
-        ' '*(maxL - n - len(mod_sep)*((ldig-1)//mod - 1)),
+        ' '*(maxL - n - len(mod_sep)*((n-1)//mod - 1)),
         '-' if negative else plus if amt > 0 else ' ',
         amt_disp,
         ' '*(maxR - rdig)
@@ -343,6 +342,9 @@ def create_ledger_temp(cur):
 
     tmp_tables_create.add(ret)
 
+def fa(x, l, r, L, R):
+    return amount_display(x, l, r, L, R, plus='+') if x else ''
+
 def create_bsheet_temp(cur, account=None):
     ret = 'bsheet'
 
@@ -372,10 +374,6 @@ def create_bsheet_temp(cur, account=None):
                 ( ( CASE WHEN spath LIKE '{path}%' THEN -amt ELSE 0 END )
                 + ( CASE WHEN dpath LIKE '{path}%' THEN  amt ELSE 0 END ) )
             '''.format(path=path)
-
-        def fa(x, l, r, L, R):
-            return amount_display(x, l, r, L, R, plus='+') if x else ''
-
 
         if account is None:
             cur.execute('''
@@ -590,6 +588,173 @@ def create_bsheet_temp(cur, account=None):
             return ret, tuple(
                 'Date Transaction From To Debit Credit Commodity'.split()
             ) + tuple('B(' + x + ')' for x in commodities)
+
+def create_summary_temp(cur):
+    ret = 'summary'
+
+    cur.execute('SELECT code FROM commodities')
+    commodities = [ x[0] for x in cur ]
+    com_index = dict((x, i) for (i, x) in enumerate(commodities))
+
+    credits = dict()
+    debits = dict()
+
+    if ret not in tmp_tables_create:
+        cur.execute('SELECT MAX(ldig) FROM ledger_view')
+        maxL = cur.fetchone()[0]
+
+        cur.execute('SELECT MAX(rdig) FROM ledger_view')
+        maxR = cur.fetchone()[0]
+
+        cur.execute('''
+            CREATE TEMPORARY TABLE {ret} (
+                path    VARCHAR(1024),
+                account VARCHAR(1024),
+                {debits}, {credits}, {balances}
+            )
+        '''.format(
+            ret=ret,
+            debits=',\n'.join(
+                'd_' + x + ' VARCHAR(1024)'
+                for x in commodities
+            ),
+            credits=',\n'.join(
+                'c_' + x + ' VARCHAR(1024)'
+                for x in commodities
+            ),
+            balances=',\n'.join(
+                'b_' + x + ' VARCHAR(1024)'
+                for x in commodities
+            ),
+        ))
+
+        cur.execute('''
+            SELECT date, spath, dpath, amt, ldig, rdig, com
+            FROM ledger_view
+        ''')
+
+        def debit(path, amt, com):
+            if path not in debits:
+                debits[path] = [0 for x in commodities]
+
+            debits[path][com_index[com]] += amt
+
+            parent, _ = path.rsplit('/', 1)
+            if parent: debit(parent, amt, com)
+
+        def credit(path, amt, com):
+            if path not in credits:
+                credits[path] = [0 for x in commodities]
+
+            credits[path][com_index[com]] += amt
+
+            parent, _ = path.rsplit('/', 1)
+            if parent: credit(parent, amt, com)
+
+        for date, spath, dpath, amt, ldig, rdig, com in cur:
+            for i in range(rdig, maxR):
+                amt *= 10
+
+            debit(spath, amt, com)
+            credit(dpath, amt, com)
+
+        rows = []
+
+        for path in sorted(set(iter(debits)) | set(iter(credits))):
+            nlevels = len(path[1:].split('/'))
+            debit = debits.get(path)
+            credit = credits.get(path)
+            _, short_name = path.rsplit('/', 1)
+
+            if debit is None: debit = [0 for x in commodities]
+            if credit is None: credit = [0 for x in commodities]
+
+            debits[path] = debit
+            credits[path] = credit
+
+            rows.append((
+                path,
+                ('| '*(nlevels - 1)) +
+                ('+-' if nlevels > 1 else '') +
+                short_name,
+            ) + tuple(
+                fa(-x, ldig, rdig, maxL, maxR)
+                for x in debit
+            ) + tuple(
+                fa(x, ldig, rdig, maxL, maxR)
+                for x in credit
+            ) + tuple(
+                amount_display(
+                    a - b, ldig, rdig, maxL, maxR
+                )
+                for (a,b) in zip(credit, debit)
+            ))
+
+        AD = debits.get('/A')
+        AC = credits.get('/A')
+
+        LD = debits.get('/L')
+        LC = credits.get('/L')
+
+        if AD is None: AD = [0 for x in commodities]
+        if AC is None: AC = [0 for x in commodities]
+
+        if LD is None: LD = [0 for x in commodities]
+        if LC is None: LC = [0 for x in commodities]
+
+        debits['/A'] = AD
+        credits['/A'] = AC
+
+        debits['/L'] = LD
+        credits['/L'] = LC
+
+        cur.executemany('''
+            INSERT INTO {ret} VALUES({QM})
+        '''.format(
+            ret=ret,
+            QM=', '.join('?' for x in rows[0])
+        ), rows)
+
+        cur.execute('''
+            INSERT INTO {ret} VALUES({QM})
+        '''.format(
+            ret=ret,
+            QM=', '.join('?' for x in rows[0])
+        ),
+            ( None, )*len(rows[0])
+        )
+
+        cur.execute('''
+            INSERT INTO {ret} VALUES({QM})
+        '''.format(
+            ret=ret,
+            QM=', '.join('?' for x in rows[0])
+        ), (
+            None, 'TOTAL EQUITY'
+        ) + tuple(
+            fa(-(ad + lc), maxL, maxR, maxL, maxR)
+            for (ad, lc) in zip(AD, LC)
+        ) + tuple(
+            fa((ac + ld), maxL, maxR, maxL, maxR)
+            for (ac, ld) in zip(AC, LD)
+        ) + tuple(
+            amount_display(
+                (ac + ld) - (ad + lc), maxL, maxR, maxL, maxR
+            )
+            for (ad, ac, ld, lc) in zip(AD, AC, LD, LC)
+        ))
+
+        tmp_tables_create.add(ret)
+
+        return ret, (
+            'Account',
+        ) + tuple(
+            'D(' + x + ')' for x in commodities
+        ) + tuple(
+            'C(' + x + ')' for x in commodities
+        ) + tuple(
+            'B(' + x + ')' for x in commodities
+        )
 
 def ensure_tables(cur):
     cur.execute('''
