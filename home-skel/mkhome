@@ -10,8 +10,11 @@ if [ "$src" '=' "$dst" ] ; then
     exit 1
 fi
 
+self="$( basename "$( realpath "$0" )" )"
 cd "$src"
 for path in * ; do
+    if [ "$path" '=' "$self" ] ; then continue ; fi
+
     tmp_dst="$dst/$path"
     if [ "${path:0:4}" '=' 'dot-' ] ; then
         tmp_dst="$dst/.${path:4}"
