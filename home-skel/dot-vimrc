@@ -63,3 +63,10 @@ else
     " colorscheme solarize
 endif
 
+" highlight current line/column
+hi CursorColumn term=underline cterm=reverse
+hi CursorLine term=underline cterm=reverse
+
+set cursorline
+set cursorcolumn
+
