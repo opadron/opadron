@@ -1,14 +1,9 @@
 #!/usr/bin/env bash
 
-if [ "$1" '=' '-' ] ; then
-    shift
-    eval "screen $*"
+if [ -z "$STY" ] ; then
+    name="$1" ; if [ -z "$name" ] ; then name=default; fi
+    screen -D -R -S "$name"
 else
-    if [ -z "$STY" ] ; then
-        name="$1" ; if [ -z "$name" ] ; then name=default; fi
-        screen -D -R -S "$name"
-    else
-        screen -ls
-    fi
+    screen -ls
 fi
 
