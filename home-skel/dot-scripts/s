@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-if [ -n "$*" ] ; then
+if [ "$1" '=' '-' ] ; then
+    shift
     eval "screen $*"
 else
     if [ -z "$STY" ] ; then
