@@ -64,8 +64,10 @@ else
 endif
 
 " highlight current line/column
-hi CursorColumn term=underline cterm=reverse
-hi CursorLine term=underline cterm=reverse
+hi CursorColumn term=underline cterm=NONE ctermbg=blue
+hi CursorLine term=underline cterm=NONE ctermbg=blue
+" hi CursorColumn term=underline cterm=reverse
+" hi CursorLine term=underline cterm=reverse
 
 set cursorline
 set cursorcolumn
