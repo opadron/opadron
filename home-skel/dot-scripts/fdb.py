@@ -874,34 +874,41 @@ def ensure_dir(dir_path):
         os.mkdir(dir_path)
 
 def format_rows(cur, headers=None):
-    import itertools as it
-    import subprocess as sp
-    delim = chr(27)
-    P = sp.Popen(
-        ['column', '-t', '-n', '-s', delim],
-        stdout=sp.PIPE,
-        stdin=sp.PIPE,
-    )
+    nColumns = len(headers)
+    rows = list(iter(cur))
+    maxLengths = [len(header) for header in headers]
+    lengths = [None for x in headers]
 
-    G = iter(cur)
+    for (i, row) in enumerate(rows):
+        rows[i]    = [ str(column)
+                           if column is not None
+                           else ''
+                       for column in rows[i] ]
+        lengths[:] = map(len, rows[i])
 
-    if headers is not None:
-        G = it.chain((
-            headers,
-            tuple('-'*len(x) for x in headers),
-        ), G)
+        maxLengths[:] = [ max(a, b) for (a,b) in zip(maxLengths, lengths) ]
 
-    ret, _ = P.communicate(
+    return '\n'.join((
+        ' '.join(
+            (
+                '%*s%s%*s' % (
+                    (length - len(header))//2, '',
+                    header,
+                    (length - len(header) - (length - len(header))//2),
+                    '',
+                )
+            ) for (length,header) in zip(maxLengths,headers)
+        ),
+        ' '.join(
+            '-'*length for length in maxLengths
+        ),
         '\n'.join(
-            delim.join( str(y) if y is not None else ''
-                      for y in x                     )
-
-            for x in G
-        ) + '\n'
-    )
-
-    P.wait()
-    return ret
+            ' '.join(
+                ('%-*s' % (length, column))
+                for (length,column) in zip(maxLengths, row)
+            ) for row in rows
+        )
+    ))
 
 @contextmanager
 def connect(ledger_path):
