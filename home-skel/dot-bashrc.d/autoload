@@ -5,4 +5,5 @@ mod_import commonlib
 mod_import environment
 mod_import prompt
 mod_import tab_complete
+mod_import disable_ixon
 
