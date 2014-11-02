@@ -1,4 +1,5 @@
 
+import argparse
 import datetime
 import hashlib
 import os
@@ -50,6 +51,68 @@ DDD = dict(
 )
 
 tmp_tables_create = set()
+
+_time_spec_parser = None
+def time_spec_parser():
+    global _time_spec_parser
+    if _time_spec_parser is None:
+        _time_spec_parser = argparse.ArgumentParser()
+        _time_spec_parser.add_argument('-d', '--day'  , nargs='?', default='')
+        _time_spec_parser.add_argument('-m', '--month', nargs='?', default='')
+        _time_spec_parser.add_argument('-y', '--year' , nargs='?', default='')
+
+    return _time_spec_parser
+
+def parse_time_spec(args=None):
+    if args is None:
+        args = sys.argv[1:]
+
+    if isinstance(args, list):
+        args = time_spec_parser().parse_args(args)
+
+    now = datetime.datetime.now()
+
+    args.year = (     now.year       if args.year is None
+                 else int(args.year) if args.year
+                 else None                               )
+
+    args.month = (     now.month       if args.month is None
+                  else int(args.month) if args.month
+                  else None                                 )
+
+    args.day = (    now.day        if args.day is None
+                else int(args.day) if args.day 
+                else None                              )
+
+    xor = lambda a, b: (a and (not b)) or ((not a) and b)
+
+    f = False
+    b = bool(args.day  ) ; f = f or b ; args.day   = ( now.day   if f and not b else args.day   )
+    b = bool(args.month) ; f = f or b ; args.month = ( now.month if f and not b else args.month )
+    b = bool(args.year ) ; f = f or b ; args.year  = ( now.year  if f and not b else args.year  )
+
+    return args
+
+def gen_time_spec_query_fragment(args, head=False):
+    query = ''
+    query_args = []
+    if args.year:
+        if head:
+            query += ' WHERE'
+        query += ' ( STRFTIME(\'%Y\', date) = ?'
+        query_args.append(str(args.year))
+
+        if args.month:
+            query += ' AND STRFTIME(\'%m\', date) = ?'
+            query_args.append('%02d' % args.month)
+
+            if args.day:
+                query += ' AND STRFTIME(\'%d\', date) = ?'
+                query_args.append('%02d' % args.day)
+
+        query += ' )'
+
+    return query, query_args
 
 @contextmanager
 def serial_connection(path):
@@ -266,8 +329,7 @@ def amount_display(amt, ldig, rdig, maxL, maxR,
         ' '*(maxR - rdig)
     ))
 
-def create_ledger_temp(cur):
-
+def create_ledger_temp(cur, args):
     ret = 'ledger_temp'
     if ret in tmp_tables_create: return ret
 
@@ -292,12 +354,18 @@ def create_ledger_temp(cur):
     cur.execute('SELECT MAX(rdig) FROM ledger_view')
     maxR = cur.fetchone()[0]
 
-    cur.execute('''
+    query = ('''
         SELECT tid, date, desc, src ,
                dst, amt , ldig, rdig,
                com
         FROM ledger_view
     ''')
+
+    q, a = gen_time_spec_query_fragment(args, True)
+
+    query += q
+
+    cur.execute(query, a)
 
     rows = []
 
@@ -345,7 +413,7 @@ def create_ledger_temp(cur):
 def fa(x, l, r, L, R):
     return amount_display(x, l, r, L, R, plus='+') if x else ''
 
-def create_bsheet_temp(cur, account=None):
+def create_bsheet_temp(cur, account, args):
     ret = 'bsheet'
 
     cur.execute('SELECT code FROM commodities')
@@ -398,7 +466,7 @@ def create_bsheet_temp(cur, account=None):
                 ),
             ))
 
-            cur.execute('''
+            query = ('''
                 SELECT
                     tid, date, desc, src, dst,
 
@@ -412,7 +480,7 @@ def create_bsheet_temp(cur, account=None):
 
                 FROM ledger_view
 
-                WHERE
+                WHERE (
                        spath LIKE '/A%'
                     OR spath LIKE '/L%'
                     OR spath LIKE '/I%'
@@ -424,6 +492,7 @@ def create_bsheet_temp(cur, account=None):
                     OR dpath LIKE '/I%'
                     OR dpath LIKE '/E%'
                     OR dpath LIKE '/Q%'
+                )
             '''.format(
                 formatA=check_account_clause('/A'),
                 formatL=check_account_clause('/L'),
@@ -432,16 +501,58 @@ def create_bsheet_temp(cur, account=None):
                 formatQ=check_account_clause('/Q'),
             ))
 
-            rows = []
+            q, a = gen_time_spec_query_fragment(args)
+            if q:
+                query += ' AND ' + q
 
-            last_tid = None
-            last_src = None
+            cur.execute(query, a)
+
+            rows = []
+            tids = []
 
             for (
                 tid, date, desc, src, dst, aa, ll, ii, ee, qq, ldig, rdig, com
             ) in reversed(
                 cur.fetchall()
             ):
+                for i in range(rdig, maxR):
+                    aa *= 10
+                    ll *= 10
+                    ii *= 10
+                    ee *= 10
+                    qq *= 10
+
+                equity[com] += (aa + ll)
+
+                rows.append([
+                    date, desc, src, dst,
+                    fa(aa, ldig, rdig, maxL, maxR),
+                    fa(ll, ldig, rdig, maxL, maxR),
+                    fa(ii, ldig, rdig, maxL, maxR),
+                    fa(ee, ldig, rdig, maxL, maxR),
+                    fa(qq, ldig, rdig, maxL, maxR),
+                    com,
+                ] + [
+                    amount_display(
+                        equity[x],
+                        len(str(abs(equity[x]))) - maxR, maxR,
+                        maxL, maxR
+                    )
+                    for x in commodities
+                ])
+
+                tids.append(tid)
+
+            rows = list(reversed(rows))
+            tids = list(reversed(tids))
+
+            last_tid = None
+            last_src = None
+
+            for (i,row) in enumerate(rows):
+                tid = tids[i]
+                date, desc, src = row[:3]
+    
                 if tid == last_tid:
                     tid = None
                     date = None
@@ -456,38 +567,15 @@ def create_bsheet_temp(cur, account=None):
                     last_tid = tid
                     last_src = src
 
-                for i in range(rdig, maxR):
-                    aa *= 10
-                    ll *= 10
-                    ii *= 10
-                    ee *= 10
-                    qq *= 10
+                row[:3] = (date, desc, src)
 
-                equity[com] += (aa + ll)
-
-                rows.append((
-                    date, desc, src, dst,
-                    fa(aa, ldig, rdig, maxL, maxR),
-                    fa(ll, ldig, rdig, maxL, maxR),
-                    fa(ii, ldig, rdig, maxL, maxR),
-                    fa(ee, ldig, rdig, maxL, maxR),
-                    fa(qq, ldig, rdig, maxL, maxR),
-                    com,
-                ) + tuple(
-                    amount_display(
-                        equity[x],
-                        len(str(abs(equity[x]))) - maxR, maxR,
-                        maxL, maxR
-                    )
-                    for x in commodities
-                ))
 
             cur.executemany('''
                 INSERT INTO {ret} VALUES({QM})
             '''.format(
                 ret=ret,
                 QM=', '.join('?' for x in rows[0])
-            ), reversed(rows))
+            ), rows)
 
 
         else:
@@ -510,7 +598,7 @@ def create_bsheet_temp(cur, account=None):
                 ),
             ))
 
-            cur.execute('''
+            query = ('''
                 SELECT
                     tid, date, desc, src, dst,
                     {format} AS delta,
@@ -518,24 +606,62 @@ def create_bsheet_temp(cur, account=None):
 
                 FROM ledger_view
 
-                WHERE
+                WHERE (
                         spath LIKE '{account}%'
                     OR  dpath LIKE '{account}%'
+                )
             '''.format(
                 account=account_path,
-                format=check_account_clause(account),
+                format=check_account_clause(account_path),
             ))
 
-            rows = []
+            q, a = gen_time_spec_query_fragment(args)
+            if q:
+                query += ' AND ' + q
 
-            last_tid = None
-            last_src = None
+            cur.execute(query, a)
+
+            rows = []
+            tids = []
 
             for (
                 tid, date, desc, src, dst, delta, ldig, rdig, com
             ) in reversed(
                 cur.fetchall()
             ):
+
+                for i in range(rdig, maxR):
+                    delta *= 10
+
+                equity[com] += delta
+
+                rows.append([
+                    date, desc, src, dst,
+                    fa(-max(-delta, 0), ldig, rdig, maxL, maxR),
+                    fa( max( delta, 0), ldig, rdig, maxL, maxR),
+                    com,
+                ] + [
+                    amount_display(
+                        equity[x],
+                        len(str(abs(equity[x]))) - maxR, maxR,
+                        maxL, maxR
+                    )
+                    for x in commodities
+                ])
+
+                tids.append(tid)
+
+
+            rows = list(reversed(rows))
+            tids = list(reversed(tids))
+
+            last_tid = None
+            last_src = None
+
+            for (i,row) in enumerate(rows):
+                tid = tids[i]
+                date, desc, src = row[:3]
+    
                 if tid == last_tid:
                     tid = None
                     date = None
@@ -550,31 +676,15 @@ def create_bsheet_temp(cur, account=None):
                     last_tid = tid
                     last_src = src
 
-                for i in range(rdig, maxR):
-                    delta *= 10
+                row[:3] = (date, desc, src)
 
-                equity[com] += delta
-
-                rows.append((
-                    date, desc, src, dst,
-                    fa(-max(-delta, 0), ldig, rdig, maxL, maxR),
-                    fa( max( delta, 0), ldig, rdig, maxL, maxR),
-                    com,
-                ) + tuple(
-                    amount_display(
-                        equity[x],
-                        len(str(abs(equity[x]))) - maxR, maxR,
-                        maxL, maxR
-                    )
-                    for x in commodities
-                ))
 
             cur.executemany('''
                 INSERT INTO {ret} VALUES({QM})
             '''.format(
                 ret=ret,
                 QM=', '.join('?' for x in rows[0])
-            ), reversed(rows))
+            ), rows)
 
         tmp_tables_create.add(ret)
 
@@ -589,7 +699,7 @@ def create_bsheet_temp(cur, account=None):
                 'Date Transaction From To Debit Credit Commodity'.split()
             ) + tuple('B(' + x + ')' for x in commodities)
 
-def create_summary_temp(cur):
+def create_summary_temp(cur, args):
     ret = 'summary'
 
     cur.execute('SELECT code FROM commodities')
@@ -628,10 +738,16 @@ def create_summary_temp(cur):
             ),
         ))
 
-        cur.execute('''
+        query = ('''
             SELECT date, spath, dpath, amt, ldig, rdig, com
             FROM ledger_view
         ''')
+
+        q, a = gen_time_spec_query_fragment(args, True)
+        if q:
+            query += q
+
+        cur.execute(query, a)
 
         def debit(path, amt, com):
             if path not in debits:

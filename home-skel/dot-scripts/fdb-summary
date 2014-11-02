@@ -7,18 +7,26 @@ import fdb
 
 with fdb.connect(sys.argv[1]) as db:
     with db() as cur:
-        tbl, headers = fdb.create_summary_temp(cur)
+        a = sys.argv[2:]
 
-        query = 'SELECT * FROM {tbl}'.format(tbl=tbl)
+        account = None
         if len(sys.argv) > 2:
+            account = sys.argv[2]
+            if account.startswith('-'):
+                account = None
+            else:
+                a = a[1:]
+
+        tbl, headers = fdb.create_summary_temp(cur, fdb.parse_time_spec(a))
+        query = 'SELECT * FROM {tbl}'.format(tbl=tbl)
+
+        if account is not None:
             cur.execute('''
                 SELECT path FROM accounts
                 WHERE code = ? OR path = ?
-            ''', (sys.argv[2], sys.argv[2]))
+            ''', (account, account))
 
             account = cur.fetchone()[0]
-
-            print account
 
             query = ' '.join((
                 query,

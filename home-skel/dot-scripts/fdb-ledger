@@ -7,7 +7,7 @@ import fdb
 
 with fdb.connect(sys.argv[1]) as db:
     with db() as cur:
-        fdb.create_ledger_temp(cur)
+        fdb.create_ledger_temp(cur, fdb.parse_time_spec(sys.argv[2:]))
 
         cur.execute('''
             SELECT
