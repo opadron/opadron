@@ -11,10 +11,16 @@ function check_sum() {
 }
 
 function parse_git_branch() {
-    echo "$(
+    local branch="$(
         git branch 2> /dev/null |
         sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'
     )"
+
+    if git status 2> /dev/null | grep -q '\t[a-z][a-z]*:   [^ ].*$' ; then
+        branch="${branch}*"
+    fi
+
+    echo "$branch"
 }
 
 function parse_git_branch_head() {
@@ -64,7 +70,7 @@ function uname_at_host() {
             ret="$ret$code${USER:$n_ret:1}"
             n_ret="$(( n_ret + 1 ))"
 
-            if [ "$n_ret" '=' '4' ] ; then
+            if [ "$n_ret" '=' "${#USER}" ] ; then
                 is_done=1
                 break
             fi
@@ -75,31 +81,128 @@ function uname_at_host() {
     echo "$ret"
 }
 
+function shell_level_flag() {
+    local head="\[$( echo -e '\x1b[34m' )\]("
+    local body="\[$( echo -e '\x1b[1;34m' )\]$SHLVL"
+    local tail="\[$( echo -e '\x1b[34m' )\])\[$( echo -e '\x1b[0m' )\]"
+
+    echo "${head}${body}${tail}"
+}
+
+function is_root_flag() {
+    if [ "$USER" '=' 'root' ] ;then
+        echo "\[$( echo -e '\x1b[1;5;37;41m' )\]R\[$( echo -e '\x1b[0m' )\] "
+    fi
+}
+
+function num_jobs() {
+    local nj="$( echo $( jobs | wc -l ) )"
+    if [ "$nj" '!=' '0' ] ; then
+        echo "$nj"
+    fi
+}
+
+function num_jobs_head() {
+    if [ -n "$( num_jobs )" ] ; then
+        echo '('
+    fi
+}
+
+function num_jobs_tail() {
+    if [ -n "$( num_jobs )" ] ; then
+        echo ')'
+    fi
+}
+
+function num_jobs_space() {
+    if [ -n "$( num_jobs )" ] ; then
+        echo ' '
+    fi
+}
+
+function git_remote_status() {
+    local branch_spec="$(
+        git status 2> /dev/null |
+        grep 'Your branch is \(ahead of\|behind\) ' |
+        sed -e 's/^.* \(ahead of\) .* by \([0-9][0-9]*\) commit.*$/\1,\2/g' |
+        sed -e 's/^.* \(behind\) .* by \([0-9][0-9]*\) commit.*$/\1,\2/g'
+    )"
+
+    local has_branch_spec='1'
+    if [ -z "$branch_spec" ] ; then
+        has_branch_spec='0'
+    fi
+
+    if [ "$has_branch_spec" '=' '1' ] ; then
+        local sign='+'
+        if [ "$( echo "$branch_spec" | cut -d, -f 1 )" '=' 'behind' ] ; then
+            sign='-'
+        fi
+
+        local nbranches="$( echo "$branch_spec" | cut -d, -f 2 )"
+
+        echo "$sign$nbranches"
+    fi
+}
+
+function git_remote_status_head() {
+    if [ -n "$( git_remote_status )" ] ; then
+        echo '('
+    fi
+}
+
+function git_remote_status_tail() {
+    if [ -n "$( git_remote_status )" ] ; then
+        echo ')'
+    fi
+}
+
+function git_remote_status_space() {
+    if [ -n "$( git_remote_status )" ] ; then
+        echo ' '
+    fi
+}
 
 red="\[$( echo -e '\x1b[0;31m' )\]"
 grn="\[$( echo -e '\x1b[0;32m' )\]"
+yel="\[$( echo -e '\x1b[0;33m' )\]"
 blu="\[$( echo -e '\x1b[0;34m' )\]"
 cyn="\[$( echo -e '\x1b[0;36m' )\]"
                             
 RED="\[$( echo -e '\x1b[1;31m' )\]"
 GRN="\[$( echo -e '\x1b[1;32m' )\]"
+YEL="\[$( echo -e '\x1b[1;33m' )\]"
 BLU="\[$( echo -e '\x1b[1;34m' )\]"
 CYN="\[$( echo -e '\x1b[1;36m' )\]"
 
 RES="\[$( echo -e '\x1b[0m' )\]"
 
+if false ; then
 # date
 p="${p}$blu\`date '+%m'\`"
 p="${p}$BLU\`date '+%d'\`"
+fi
 
+if false ; then
 # time
 p="${p}$cyn\`date '+%k'\`"
 p="${p}$CYN\`date '+%M'\`"
 p="${p}$RES "
+fi
 
+if false ; then
 # machine status
 p="${p}`uname_at_host`"
 p="${p}$RES "
+fi
+
+p="${p}`shell_level_flag`"
+
+p="${p}$RES\`num_jobs_head\`"
+p="${p}\`num_jobs\`"
+p="${p}\`num_jobs_tail\`"
+# p="${p}\`num_jobs_space\`"
+p="${p} "
 
 # cwd
 p="${p}$GRN["
@@ -111,9 +214,14 @@ p="${p}$RED\`parse_git_branch_head\`"
 p="${p}$red\`parse_git_branch\`"
 p="${p}$RED\`parse_git_branch_tail\`"
 
+p="${p}$RES\`git_remote_status_space\`"
+p="${p}$YEL\`git_remote_status_head\`"
+p="${p}$yel\`git_remote_status\`"
+p="${p}$YEL\`git_remote_status_tail\`"
+
 p="${p}$GRN]"
 p="${p}$RES "
-
+p="${p}`is_root_flag`"
 
 export PS1="$p"
 
