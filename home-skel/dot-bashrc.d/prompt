@@ -1,5 +1,7 @@
 #! /usr/bin/env bash
 
+mod_import colors
+
 function check_sum() {
     for com in md5 md5sum shasum ; do
         which "$com" &> /dev/null
@@ -10,217 +12,121 @@ function check_sum() {
     done
 }
 
-function parse_git_branch() {
-    local branch="$(
+__prompt_shell_level=
+__prompt_number_of_jobs=
+__prompt_git_branch=
+__prompt_git_remote_status=
+__prompt_is_root=
+
+__prompt_shell_level_flag=
+__prompt_is_root_flag=
+
+function __prompt_update() {
+    local x=
+
+    if [ -z "$__prompt_shell_level_flag" ] ; then
+        x=
+        x="${x}\[$TERM_COLORS_BLUE\]("
+        x="${x}\[$TERM_COLORS_blue\]$SHLVL"
+        x="${x}\[$TERM_COLORS_BLUE\])"
+        x="${x}\[$TERM_COLORS_RESET\]"
+
+        __prompt_shell_level="$x"
+        __prompt_shell_level_flag=x
+    fi
+
+    __prompt_number_of_jobs=
+    local x="$( echo $( jobs | wc -l ) )"
+    if [ "$x" '!=' '0' ] ; then
+        __prompt_number_of_jobs="($x)"
+    fi
+
+    __prompt_git_remote_status="$(
+        git status --branch --porcelain --ignore-submodules=dirty 2> /dev/null |
+        head -n 1 |
+        grep '\[\(ahead\|behind\) [0-9]\+\]' |
+        sed -e 's/^.*\(ahead\) .*\([0-9][0-9]*\).*$/+\2/g' |
+        sed -e 's/^.*\(behind\) .*\([0-9][0-9]*\).*$/-\2/g'
+    )"
+
+    x=
+    if [ -n "$__prompt_git_remote_status" ] ; then
+        x="${x} "
+        x="${x}\[$TERM_COLORS_YELLOW\]("
+        x="${x}\[$TERM_COLORS_yellow\]$__prompt_git_remote_status"
+        x="${x}\[$TERM_COLORS_YELLOW\])"
+        x="${x}\[$TERM_COLORS_RESET\]"
+        __prompt_git_remote_status="$x"
+    fi
+
+    __prompt_git_branch="$(
         git branch 2> /dev/null |
         sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'
     )"
 
-    local git_stat="git status"
-    git_stat="${git_stat} --porcelain"
-    git_stat="${git_stat} --ignore-submodules=dirty"
+    if [ -n "$__prompt_git_branch" ] ; then
+        x=
+        x="${x}git status"
+        x="${x} --porcelain"
+        x="${x} --ignore-submodules=dirty"
 
-    if $git_stat 2> /dev/null | grep -q -v '^?? .*$'; then
-        branch="${branch}*"
+        if $x 2> /dev/null | grep -q -v '^?? .*$'; then
+            __prompt_git_branch="${__prompt_git_branch}*"
+        fi
+
+        x=
+        x="${x}\[$TERM_COLORS_RESET\] "
+        x="${x}\[$TERM_COLORS_RED\]("
+        x="${x}\[$TERM_COLORS_red\]$__prompt_git_branch"
+        x="${x}\[$TERM_COLORS_RED\])"
+        x="${x}\[$TERM_COLORS_RESET\]"
+
+        __prompt_git_branch="$x"
     fi
 
-    echo "$branch"
-}
+    if [ -z "$__prompt_is_root_flag" ] ; then
+        x=
+        if [ "$USER" '=' 'root' ] ; then
+            x="${x}\[$( echo -e '\x1b[5;7;47m' )\]"
+            x="${x}\[$TERM_COLORS_RED\]R"
+            x="${x}\[$TERM_COLORS_RESET\] "
+        fi
 
-function parse_git_branch_head() {
-    if [ -n "$( parse_git_branch )" ] ; then
-        echo '('
+        __prompt_is_root="$x"
+        __prompt_is_root_flag=x
     fi
+
+    PS1=
+    # date
+    # PS1="${PS1}\\[$TERM_COLORS_blue\\]\`date '+%m'\`"
+    # PS1="${PS1}\\[$TERM_COLORS_BLUE\\]\`date '+%d'\`"
+    # PS1="${PS1}\\[$TERM_COLORS_RESET\\]"
+    
+    # time
+    # PS1="${PS1}\\[$TERM_COLORS_cyan\\]\`date '+%k'\`"
+    # PS1="${PS1}\\[$TERM_COLORS_CYAN\\]\`date '+%M'\`"
+    # PS1="${PS1}\\[$TERM_COLORS_RESET\\]"
+    
+    # machine status
+    # PS1="${PS1}`uname_at_host`"
+    # PS1="${PS1}\\[$TERM_COLORS_RESET\\] "
+    
+    PS1="${PS1}$__prompt_shell_level"
+    PS1="${PS1}$__prompt_number_of_jobs"
+    PS1="${PS1} "
+    
+    PS1="${PS1}\\[$TERM_COLORS_GREEN\\]["
+    PS1="${PS1}\\[$TERM_COLORS_green\\]\\W"
+    
+    PS1="${PS1}$__prompt_git_branch"
+    PS1="${PS1}$__prompt_git_remote_status"
+    
+    PS1="${PS1}\\[$TERM_COLORS_GREEN\\]]"
+    
+    PS1="${PS1}\\[$TERM_COLORS_RESET\\] "
+    PS1="${PS1}$__prompt_is_root"
+
 }
 
-function parse_git_branch_tail() {
-    if [ -n "$( parse_git_branch )" ] ; then
-        echo ')'
-    fi
-}
-
-function parse_git_branch_space() {
-    if [ -n "$( parse_git_branch )" ] ; then
-        echo ' '
-    fi
-}
-
-function uname_at_host() {
-
-    if [ "$USER" '=' 'root' ] ;then
-        blink_fragment='5;'
-    fi
-    c0="\[$( echo -e '\x1b[1;'"$blink_fragment"'37;41m' )\]"
-    c1="\[$( echo -e '\x1b[1;'"$blink_fragment"'37;43m' )\]"
-    c2="\[$( echo -e '\x1b[1;'"$blink_fragment"'37;44m' )\]"
-    c3="\[$( echo -e '\x1b[1;'"$blink_fragment"'37;45m' )\]"
-    c4="\[$( echo -e '\x1b[1;'"$blink_fragment"'37;46m' )\]"
-
-    hn="$( hostname )"
-    n_ret=0
-    ret=""
-    csum="$hn"
-    is_done=0
-    while [ "$is_done" '=' '0' ] ; do
-        csum="$( check_sum "$csum" )"
-        for ((i=0; i<"${#csum}"; ++i)) ; do
-            digit="$(( 0x${csum:$i:1} % 5 ))"
-            code="$( eval 'echo $c'"$digit" )"
-
-            if [ -z "$code" ] ; then
-                continue
-            fi
-
-            ret="$ret$code${USER:$n_ret:1}"
-            n_ret="$(( n_ret + 1 ))"
-
-            if [ "$n_ret" '=' "${#USER}" ] ; then
-                is_done=1
-                break
-            fi
-
-        done
-    done
-
-    echo "$ret"
-}
-
-function shell_level_flag() {
-    local head="\[$( echo -e '\x1b[34m' )\]("
-    local body="\[$( echo -e '\x1b[1;34m' )\]$SHLVL"
-    local tail="\[$( echo -e '\x1b[34m' )\])\[$( echo -e '\x1b[0m' )\]"
-
-    echo "${head}${body}${tail}"
-}
-
-function is_root_flag() {
-    if [ "$USER" '=' 'root' ] ;then
-        echo "\[$( echo -e '\x1b[1;5;37;41m' )\]R\[$( echo -e '\x1b[0m' )\] "
-    fi
-}
-
-function num_jobs() {
-    local nj="$( echo $( jobs | wc -l ) )"
-    if [ "$nj" '!=' '0' ] ; then
-        echo "$nj"
-    fi
-}
-
-function num_jobs_head() {
-    if [ -n "$( num_jobs )" ] ; then
-        echo '('
-    fi
-}
-
-function num_jobs_tail() {
-    if [ -n "$( num_jobs )" ] ; then
-        echo ')'
-    fi
-}
-
-function num_jobs_space() {
-    if [ -n "$( num_jobs )" ] ; then
-        echo ' '
-    fi
-}
-
-function git_remote_status() {
-    git status --branch --porcelain --ignore-submodules=dirty 2> /dev/null |
-    head -n 1 |
-    grep '\[\(ahead\|behind\) [0-9]\+\]' |
-    sed -e 's/^.*\(ahead\) .*\([0-9][0-9]*\).*$/+\2/g' |
-    sed -e 's/^.*\(behind\) .*\([0-9][0-9]*\).*$/-\2/g'
-}
-
-function git_remote_status_head() {
-    if [ -n "$( git_remote_status )" ] ; then
-        echo '('
-    fi
-}
-
-function git_remote_status_tail() {
-    if [ -n "$( git_remote_status )" ] ; then
-        echo ')'
-    fi
-}
-
-function git_remote_status_space() {
-    if [ -n "$( git_remote_status )" ] ; then
-        echo ' '
-    fi
-}
-
-red="\[$( echo -e '\x1b[0;31m' )\]"
-grn="\[$( echo -e '\x1b[0;32m' )\]"
-yel="\[$( echo -e '\x1b[0;33m' )\]"
-blu="\[$( echo -e '\x1b[0;34m' )\]"
-cyn="\[$( echo -e '\x1b[0;36m' )\]"
-                            
-RED="\[$( echo -e '\x1b[1;31m' )\]"
-GRN="\[$( echo -e '\x1b[1;32m' )\]"
-YEL="\[$( echo -e '\x1b[1;33m' )\]"
-BLU="\[$( echo -e '\x1b[1;34m' )\]"
-CYN="\[$( echo -e '\x1b[1;36m' )\]"
-
-RES="\[$( echo -e '\x1b[0m' )\]"
-
-if false ; then
-# date
-p="${p}$blu\`date '+%m'\`"
-p="${p}$BLU\`date '+%d'\`"
-fi
-
-if false ; then
-# time
-p="${p}$cyn\`date '+%k'\`"
-p="${p}$CYN\`date '+%M'\`"
-p="${p}$RES "
-fi
-
-if false ; then
-# machine status
-p="${p}`uname_at_host`"
-p="${p}$RES "
-fi
-
-p="${p}`shell_level_flag`"
-
-p="${p}$RES\`num_jobs_head\`"
-p="${p}\`num_jobs\`"
-p="${p}\`num_jobs_tail\`"
-# p="${p}\`num_jobs_space\`"
-p="${p} "
-
-# cwd
-p="${p}$GRN["
-p="${p}$grn\\W"
-
-# current git branch
-p="${p}$RES\`parse_git_branch_space\`"
-p="${p}$RED\`parse_git_branch_head\`"
-p="${p}$red\`parse_git_branch\`"
-p="${p}$RED\`parse_git_branch_tail\`"
-
-p="${p}$RES\`git_remote_status_space\`"
-p="${p}$YEL\`git_remote_status_head\`"
-p="${p}$yel\`git_remote_status\`"
-p="${p}$YEL\`git_remote_status_tail\`"
-
-p="${p}$GRN]"
-p="${p}$RES "
-p="${p}`is_root_flag`"
-
-export PS1="$p"
-
-unset p
-
-unset red
-unset blu
-unset grn
-unset cyn
-
-unset RED
-unset BLU
-unset GRN
-unset CYN
+export PROMPT_COMMAND=__prompt_update
 
