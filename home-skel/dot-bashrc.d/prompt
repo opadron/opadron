@@ -16,7 +16,11 @@ function parse_git_branch() {
         sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'
     )"
 
-    if git status 2> /dev/null | grep -q '\t[a-z][a-z]*:   [^ ].*$' ; then
+    local git_stat="git status"
+    git_stat="${git_stat} --porcelain"
+    git_stat="${git_stat} --ignore-submodules=dirty"
+
+    if $git_stat 2> /dev/null | grep -q -v '^?? .*$'; then
         branch="${branch}*"
     fi
 
@@ -121,28 +125,11 @@ function num_jobs_space() {
 }
 
 function git_remote_status() {
-    local branch_spec="$(
-        git status 2> /dev/null |
-        grep 'Your branch is \(ahead of\|behind\) ' |
-        sed -e 's/^.* \(ahead of\) .* by \([0-9][0-9]*\) commit.*$/\1,\2/g' |
-        sed -e 's/^.* \(behind\) .* by \([0-9][0-9]*\) commit.*$/\1,\2/g'
-    )"
-
-    local has_branch_spec='1'
-    if [ -z "$branch_spec" ] ; then
-        has_branch_spec='0'
-    fi
-
-    if [ "$has_branch_spec" '=' '1' ] ; then
-        local sign='+'
-        if [ "$( echo "$branch_spec" | cut -d, -f 1 )" '=' 'behind' ] ; then
-            sign='-'
-        fi
-
-        local nbranches="$( echo "$branch_spec" | cut -d, -f 2 )"
-
-        echo "$sign$nbranches"
-    fi
+    git status --branch --porcelain --ignore-submodules=dirty 2> /dev/null |
+    head -n 1 |
+    grep '\[\(ahead\|behind\) [0-9]\+\]' |
+    sed -e 's/^.*\(ahead\) .*\([0-9][0-9]*\).*$/+\2/g' |
+    sed -e 's/^.*\(behind\) .*\([0-9][0-9]*\).*$/-\2/g'
 }
 
 function git_remote_status_head() {

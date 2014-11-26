@@ -3,7 +3,10 @@
 source "$( dirname "$0" )/dot-bashrc.d/commonlib"
 
 src="$( realpath "$( dirname "$( realpath "$0" )" )" )"
-dst="$( realpath . )"
+dst="$1"
+if [ -z "$dst" ] ; then
+    dst="$HOME"
+fi
 
 if [ "$src" '=' "$dst" ] ; then
     echo "error: cannot run $0 from within its own directory" 1>&2
