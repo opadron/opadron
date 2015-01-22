@@ -136,9 +136,10 @@ let g:airline_detect_iminsert=0
 let g:airline_inactive_collapse=1
 let g:airline_exclude_preview=1
 
+let g:AutoPairsFlyMode=1
+
 "# KEY REMAPPINGS #############################################################"
 
-" tag navigation
 nnoremap H :pop<CR>
 nnoremap L <C-]>
 
