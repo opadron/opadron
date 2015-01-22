@@ -1,74 +1,121 @@
 
-set nocp
+"# BASIC OPTIONS ##############################################################"
 
-syntax enable
+filetype plugin on
 
+set nocompatible
 set autoindent
 set smartindent
 set modeline
 set ruler
-
-set ts=4
-set sw=4
-
 set tabstop=4
+set softtabstop=0
+set shiftwidth=4
 set expandtab
-
 set scrolloff=10
-set diffopt+=vertical
-
+set diffopt+=vertical,foldcolumn:0
 set hlsearch
 set incsearch
-
-set number
-
-filetype plugin on
-
+set nonumber
+set foldcolumn=0
+set foldmethod=syntax
+set wildmode=longest,list
+set textwidth=80
+set colorcolumn=+1
 set tags=./tags;/
-map <C-F12> :!ctags -R --c++-kinds=+p --fields=+iaS --extra=+q .<CR>
+
+set completeopt=longest,menuone,preview
+
+"------------------------------------------------------------------------------"
+"# COLOR/FORMATTING OPTIONS ###################################################"
+
+syntax enable
+
+let the_background="dark"
+let the_color_scheme="vividchalk"
+
+if !&diff
+    if $VIMCOLORBACKGROUND != ""
+        let the_background=$VIMCOLORBACKGROUND
+    endif
+
+    if $VIMCOLORSCHEME != ""
+        let the_color_scheme=$VIMCOLORSCHEME
+    endif
+endif
+
+execute "set background=" . the_background
+execute "colorscheme ". the_color_scheme
+if &background != the_background
+    execute "set background=" . the_background
+endif
+
+set   cursorline   " highlight current line
+set   cursorcolumn " highlight current column
+
+if &cursorline
+    " hi CursorLine term=underline cterm=underline ctermbg=NONE
+    hi CursorLine term=NONE cterm=NONE ctermbg=236 guibg=#333333
+endif
+
+if &cursorcolumn
+    " hi CursorColumn term=underline cterm=underline ctermbg=NONE
+    hi CursorColumn term=NONE cterm=NONE ctermbg=233 guibg=#333333
+endif
+
+highlight OverLength ctermbg=red ctermfg=white guibg=#592929
+match OverLength /\%81v.\+/
+
+"------------------------------------------------------------------------------"
+"# PLUGIN/FILETYPE-SPECIFIC OPTIONS ###########################################"
+
+" indent guides
+let g:indent_guides_enable_on_vim_startup=1
+let g:indent_guides_start_level=1
+let g:indent_guides_guide_size=4
+let g:indent_guides_auto_colors = 0
+
+let indent_color_odd="darkgrey"
+let indent_color_even="lightgrey"
+
+if the_background == "light"
+    let tmp=indent_color_odd
+    let indent_color_odd=indent_color_even
+    let indent_color_even=tmp
+endif
+
+execute "autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd " .
+    \ "guibg=" . indent_color_odd . " ctermbg=" . indent_color_odd
+execute "autocmd VimEnter,Colorscheme * :hi IndentGuidesEven " .
+    \ "guibg=" . indent_color_even . " ctermbg=" . indent_color_even
+
+
+" super tab
+let g:SuperTabSetDefaultCompletionType="context"
+let g:SuperTabLongestEnhanced=1
+let g:SuperTabLongestHighlight=0
+let g:SuperTabClosePreviewOnPopupClose=1
+
+let g:SuperTabMappingForward="<s-tab>"
+let g:SuperTabMappingBackward="<tab>"
+
+autocmd FileType *
+    \ if &omnifunc != '' |
+    \   call SuperTabChain(&omnifunc, "<c-p>") |
+    \   call SuperTabSetDefaultCompletionType("<c-x><c-u>") |
+    \ endif
+
+" javacomplete
 if has("autocmd")
 	autocmd Filetype java setlocal omnifunc=javacomplete#Complete
 	autocmd Filetype java setlocal omnifunc=javacomplete#CompleteParamsInfo
 endif
 
-"Make Auto-completion awesome!
-set completeopt=longest,menuone
-inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
-inoremap <expr> <C-n> pumvisible() ? '<C-n>' : 
-  \ '<C-n><C-r>=pumvisible() ? "\<lt>Down>" : ""<CR>'
-inoremap <expr> <M-,> pumvisible() ? '<C-n>' :
-  \ '<C-x><C-o><C-n><C-p><C-r>=pumvisible() ? "\<lt>Down>" : ""<CR>'
+"# KEY REMAPPINGS #############################################################"
 
-"Add sweet comment key mapping
-map c gct
+" tag navigation
+nnoremap H :pop<CR>
+nnoremap L <C-]>
 
-set foldcolumn=2
-set foldmethod=syntax
-set wildmode=longest,list
-
-let g:indent_guides_enable_on_vim_startup=1
-let g:indent_guides_start_level=2
-let g:indent_guides_guide_size=1
-
-" highlight OverLength ctermbg=red ctermfg=white guibg=#592929
-" match OverLength /\%41v.\+/
-set textwidth=80
-set colorcolumn=+1
-
-if &diff
-    colorscheme ron
-else
-    set background=dark
-    colorscheme ron
-    " colorscheme solarize
-endif
-
-" highlight current line/column
-hi CursorColumn term=underline cterm=underline ctermbg=NONE
-hi CursorLine term=underline cterm=underline ctermbg=NONE
-" hi CursorColumn term=underline cterm=reverse
-" hi CursorLine term=underline cterm=reverse
-
-set cursorline
-" set cursorcolumn
+"------------------------------------------------------------------------------"
 
