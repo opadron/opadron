@@ -138,6 +138,8 @@ let g:airline_exclude_preview=1
 
 let g:AutoPairsFlyMode=1
 
+autocmd FileType python setlocal completeopt-=preview
+
 "# KEY REMAPPINGS #############################################################"
 
 nnoremap H :pop<CR>
