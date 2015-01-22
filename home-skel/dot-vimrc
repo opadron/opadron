@@ -23,6 +23,13 @@ set wildmode=longest,list
 set textwidth=80
 set colorcolumn=+1
 set tags=./tags;/
+set listchars=tab:╬═,trail:▓,extends:»,precedes:«,nbsp:□
+set list
+set autochdir
+
+" undofile
+" persistent-undo
+" conceallevel
 
 set completeopt=longest,menuone,preview
 
@@ -44,11 +51,13 @@ if !&diff
     endif
 endif
 
+
 execute "set background=" . the_background
 execute "colorscheme ". the_color_scheme
 if &background != the_background
     execute "set background=" . the_background
 endif
+
 
 set   cursorline   " highlight current line
 set   cursorcolumn " highlight current column
