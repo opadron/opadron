@@ -8,7 +8,7 @@ if ! shopt -oq posix; then
 
     tc="$( searchpath tc_path bash_completion )"
 
-    if [ "$?" '=' '0' ] ; then
+    if [ -n "$tc" ] ; then
         source "$tc"
     fi
 
