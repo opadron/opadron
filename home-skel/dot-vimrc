@@ -115,9 +115,6 @@ let g:SuperTabLongestEnhanced=1
 let g:SuperTabLongestHighlight=0
 let g:SuperTabClosePreviewOnPopupClose=1
 
-let g:SuperTabMappingForward="<s-tab>"
-let g:SuperTabMappingBackward="<tab>"
-
 autocmd FileType *
     \ if &omnifunc != '' |
     \   call SuperTabChain(&omnifunc, "<c-p>") |
