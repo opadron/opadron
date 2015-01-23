@@ -94,8 +94,8 @@ let g:indent_guides_start_level=1
 let g:indent_guides_guide_size=4
 let g:indent_guides_auto_colors = 0
 
-let indent_color_odd="darkgrey"
-let indent_color_even="lightgrey"
+let indent_color_odd=232
+let indent_color_even=233
 
 if the_background == "light"
     let tmp=indent_color_odd
@@ -123,8 +123,8 @@ autocmd FileType *
 
 " javacomplete
 if has("autocmd")
-	autocmd Filetype java setlocal omnifunc=javacomplete#Complete
-	autocmd Filetype java setlocal omnifunc=javacomplete#CompleteParamsInfo
+    autocmd Filetype java setlocal omnifunc=javacomplete#Complete
+    autocmd Filetype java setlocal omnifunc=javacomplete#CompleteParamsInfo
 endif
 
 let g:airline_left_sep=" "
