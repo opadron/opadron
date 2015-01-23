@@ -22,9 +22,10 @@ set foldmethod=syntax
 set wildmode=longest,list
 set textwidth=80
 set tags=./tags;/
-set listchars=tab:╬═,trail:▓,extends:»,precedes:«,nbsp:□
+set listchars=tab:╬═,trail:¶,extends:»,precedes:«,nbsp:□
 set list
 set laststatus=2
+
 
 " undofile
 " persistent-undo
@@ -146,11 +147,11 @@ autocmd FileType python setlocal completeopt-=preview
 nnoremap H :pop<CR>
 nnoremap L <C-]>
 
-nnoremap <Leader><Leader> :Unite -no-split -start-insert source<CR>
+nnoremap <Leader><Leader> :Unite -no-split -start-insert file_rec<CR>
 
 nnoremap <Leader>: :vsplit<CR><C-w>l:Unite -no-split -start-insert file_rec<CR>
 nnoremap <Leader>t :tab Unite -no-split -start-insert file_rec<CR>
-nnoremap <Leader>. :Unite -no-split -start-insert file_rec<CR>
+nnoremap <Leader>. :Unite -no-split -start-insert source<CR>
 
 nnoremap <Leader>/ :Unite -start-insert line<CR>
 
