@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-screen -ls
+tmux list-sessions
 

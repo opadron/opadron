@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 
-if [ -z "$STY" ] ; then
-    name="$1" ; if [ -z "$name" ] ; then name=default; fi
-    screen -D -R -S "$name"
+if [ -z "$TMUX" ] ; then
+    name="$1"
+    if [ -z "$name" ] ; then
+        name=default
+    fi
+
+    tmux new-session -d -s "$name" &> /dev/null
+    tmux attach-session -d -t "$name"
 else
-    screen -ls
+    tmux list-sessions
 fi
 
