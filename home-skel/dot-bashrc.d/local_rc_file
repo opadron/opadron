@@ -1,0 +1,7 @@
+#! /usr/bin/env bash
+
+local_rc_file="$HOME/.bashrc.local"
+if [ -f "$local_rc_file" ] ; then
+    source "$local_rc_file"
+fi
+

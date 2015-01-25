@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 if [ -z "$TMUX" ] ; then
+    export SHLVL=$(( SHLVL - 1 ))
+
     name="$1"
     if [ -z "$name" ] ; then
         name=default

@@ -6,4 +6,5 @@ mod_import environment
 mod_import prompt
 mod_import tab_complete
 mod_import disable_ixon
+mod_import local_rc_file
 
