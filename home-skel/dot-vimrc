@@ -101,6 +101,11 @@ let g:indent_guides_auto_colors = 0
 let indent_color_odd=232
 let indent_color_even=233
 
+if the_color_scheme == "solarize"
+    let indent_color_odd=0
+    let indent_color_even=8
+endif
+
 if the_background == "light"
     let tmp=indent_color_odd
     let indent_color_odd=indent_color_even
