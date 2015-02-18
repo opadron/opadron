@@ -102,8 +102,13 @@ let indent_color_odd=232
 let indent_color_even=233
 
 if the_color_scheme == "solarize"
-    let indent_color_odd=0
-    let indent_color_even=8
+    if the_background == "dark"
+        let indent_color_odd=0
+        let indent_color_even=8
+    else
+        let indent_color_odd=230
+        let indent_color_even=7
+    endif
 endif
 
 if the_background == "light"
