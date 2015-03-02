@@ -1,0 +1,8 @@
+#! /usr/bin/env bash
+
+export VIMCOLORSCHEME=""
+export VIMCOLORBACKGROUND=""
+
+unset VIMCOLORSCHEME
+unset VIMCOLORBACKGROUND
+
