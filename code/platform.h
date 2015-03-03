@@ -57,13 +57,6 @@ typedef signed char schar;
 #define debug(...) __debug__(__VA_ARGS__+0)
 #define __debug__(N) if((N) == 0 || (N) < (DEBUG_LEVEL))
 
-// TODO
-// XXX
-// NOTE
-// IMPORTANT
-// FIXME
-// BUG
-
 #define segfault (*((hdl)NULL) = NULL)
 
 #define MAIN intern void __main__(int, char **);         \
