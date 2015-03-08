@@ -168,12 +168,6 @@ let g:AutoPairsFlyMode=1
 
 autocmd FileType python setlocal completeopt-=preview
 
-let g:jedi#auto_initialization=1
-let g:jedi#popup_on_dot=1
-let g:jedi#popup_select_first=0
-" let g:jedi#auto_vim_configuration=0
-let g:jedi#completions_enabled=0
-
 
 
 
