@@ -10,11 +10,11 @@ struct mem_stack_marker {
 
 void
 delete_mem_stack(struct mem_stack *ths) {
-    FREE(mem_stack_clear(ths));
+    FREE(mem_stack_finalize(ths));
 }
 
 struct mem_stack *
-mem_stack_clear(struct mem_stack *ths) {
+mem_stack_finalize(struct mem_stack *ths) {
     struct mem_stack_marker *a = NULL;
     struct mem_stack_marker *b = NULL;
 

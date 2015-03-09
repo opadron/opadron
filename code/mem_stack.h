@@ -19,7 +19,7 @@ struct mem_stack {
 };
 
 void delete_mem_stack(struct mem_stack *);
-struct mem_stack *mem_stack_clear(struct mem_stack *);
+struct mem_stack *mem_stack_finalize(struct mem_stack *);
 struct mem_stack *mem_stack_init(struct mem_stack *);
 void mem_stack_pop(struct mem_stack *);
 ptr mem_stack_push(struct mem_stack *, counter);

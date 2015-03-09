@@ -48,10 +48,9 @@ push_and_print(struct mem_stack *stack, u8 level) {
 
 int
 main(int argc, char **argv) {
-    struct mem_stack stack;
-    mem_stack_init(&stack);
-    push_and_print(&stack, 0);
-    mem_stack_clear(&stack);
+    struct mem_stack *stack = new_mem_stack();
+    push_and_print(stack, 0);
+    delete_mem_stack(stack);
     return EXIT_SUCCESS;
 }
 

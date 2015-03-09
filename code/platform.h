@@ -72,6 +72,8 @@ typedef signed char schar;
                                   if(VAR == 0) ++VAR; \
                                   else return
 
+#define CALL_MACRO(MACRO, ...) MACRO(__VA_ARGS__)
+
 #define REVERSE_SEQUENCE_64() 63,62,61,60,59,58,57,56,55,54,53,52,51,50,49,48, \
                               47,46,45,44,43,42,41,40,39,38,37,36,35,34,33,32, \
                               31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16, \
@@ -85,16 +87,80 @@ typedef signed char schar;
                    _43,_44,_45,_46,_47,_48,_49,_50,_51,_52,_53,_54,_55,_56, \
                    _57,_58,_59,_60,_61,_62,_63,N,...) N
 
-#define CONCAT(A, B) _CONCAT_(A, B)
-#define _CONCAT_(A, B) A##B
+#define CONCAT(A, B) CONCATa(A, B)
+#define CONCATa(A, B) A##B
 
-#define CPP_DISPATCH(MACRO, ...) \
-    _CPP_DISPATCH_(CONCAT(MACRO, CONCAT(_, NUM_ARGS(__VA_ARGS__))), __VA_ARGS__)
+#define _CHECK(...) _CHECKa(__VA_ARGS__, 1,)
+#define _CHECKa(X, N, ...) N
 
-#define _CPP_DISPATCH_(MACRO, ...) __CPP_DISPATCH__(MACRO, __VA_ARGS__)
-#define __CPP_DISPATCH__(MACRO, ...) MACRO(__VA_ARGS__)
+#define _NOT_ONE(X) _CHECK(CONCATa(_NOT_ONE_, X))
+#define _NOT_ONE_1 ~, 0,
 
-#define ALLOC(...) CPP_DISPATCH(ALLOC, __VA_ARGS__)
+#define _COMPL(X) CONCATa(_COMPL_, X)
+#define _COMPL_0 1
+#define _COMPL_1 0
+
+#define IS_ONE(X) _COMPL(_NOT_ONE(X))
+
+#define CPP_DISPATCH(MACRO, MODE, ...) \
+    CPP_DISPATCHa(                     \
+        CONCAT(CPP_DISPATCH_, MODE),   \
+        MACRO,                         \
+        NUM_ARGS(__VA_ARGS__),         \
+        __VA_ARGS__                    \
+    )
+
+#define CPP_DISPATCHa(NEXT, MACRO, N, ...) NEXT(MACRO, N, __VA_ARGS__)
+
+#define CPP_DISPATCH_ENUM(MACRO, N, ...) \
+    CPP_DISPATCH_ENUMa(CONCAT(CONCAT(MACRO, _), N), __VA_ARGS__)
+
+#define CPP_DISPATCH_ENUMa(NEXT, ...) NEXT(__VA_ARGS__)
+
+#define CPP_DISPATCH_MULTI(MACRO, N, ...)       \
+    CPP_DISPATCH_MULTIa(                        \
+        CONCAT(CPP_DISPATCH_MULTI_, IS_ONE(N)), \
+        MACRO,                                  \
+        N,                                      \
+        __VA_ARGS__                             \
+    )
+
+#define CPP_DISPATCH_MULTIa(NEXT, MACRO, N, ...) NEXT(MACRO, N, __VA_ARGS__)
+
+#define CPP_DISPATCH_MULTI_0(MACRO, N, ...) \
+    CPP_DISPATCH_MULTI_0a(CONCAT(MACRO, _MULTI), N, __VA_ARGS__)
+
+#define CPP_DISPATCH_MULTI_0a(NEXT, N, ...) NEXT(N, __VA_ARGS__)
+
+#define CPP_DISPATCH_MULTI_1(MACRO, N, ...) \
+    CPP_DISPATCH_MULTI_0a(CONCAT(MACRO, _SINGLE), N, __VA_ARGS__)
+
+#define CPP_DISPATCH_MULTI_1a(NEXT, N, ...) NEXT(N, __VA_ARGS__)
+
+#define CONSTRUCTOR_DECL(...) CPP_DISPATCH(CONSTRUCTOR_DECL, MULTI, __VA_ARGS__)
+
+#define CONSTRUCTOR_DECL_SINGLE(TYPE)                      \
+    extern struct TYPE *CONCAT(TYPE, _init)(struct TYPE *)
+
+#define CONSTRUCTOR_DECL_MULTI(TYPE, ...)                               \
+    extern struct TYPE *CONCAT(TYPE, _init)(struct TYPE *, __VA_ARGS__)
+
+#define DESTRUCTOR_DECL(TYPE)                                  \
+    extern struct TYPE *CONCAT(TYPE, _finalize)(struct TYPE *)
+
+
+#define CONSTRUCTOR_DEF(...) CPP_DISPATCH(CONSTRUCTOR_DEF, MULTI, __VA_ARGS__)
+
+#define CONSTRUCTOR_DEF_SINGLE(TYPE)                   \
+    struct TYPE *CONCAT(TYPE, _init)(struct TYPE *self)
+
+#define CONSTRUCTOR_DEF_MULTI(TYPE, ...)                             \
+    struct TYPE *CONCAT(TYPE, _init)(struct TYPE *self, __VA_ARGS__)
+
+#define DESTRUCTOR_DEF(TYPE)                            \
+    struct TYPE *CONCAT(TYPE, _finalize)(struct TYPE *)
+
+#define ALLOC(...) CPP_DISPATCH(ALLOC, ENUM, __VA_ARGS__)
 
 #define ALLOC_1(OUT)              _ALLOC_(OUT,     1, sizeof(*(OUT)))
 #define ALLOC_2(OUT, COUNT)       _ALLOC_(OUT, COUNT, sizeof(*(OUT)))
@@ -104,7 +170,7 @@ typedef signed char schar;
     do { OUT = malloc((COUNT)*(SIZE)); } while(0)
 
 
-#define REALLOC(...) CPP_DISPATCH(REALLOC, __VA_ARGS__)
+#define REALLOC(...) CPP_DISPATCH(REALLOC, ENUM, __VA_ARGS__)
 
 #define REALLOC_1(OUT)              _REALLOC_(OUT,     1, sizeof(*(OUT)))
 #define REALLOC_2(OUT, COUNT)       _REALLOC_(OUT, COUNT, sizeof(*(OUT)))
@@ -114,7 +180,7 @@ typedef signed char schar;
     do { OUT = realloc(OUT, (COUNT)*(SIZE)); } while(0)
 
 
-#define CALLOC(...) CPP_DISPATCH(CALLOC, __VA_ARGS__)
+#define CALLOC(...) CPP_DISPATCH(CALLOC, ENUM, __VA_ARGS__)
 
 #define CALLOC_1(OUT)              _CALLOC_(OUT,     1, sizeof(*(OUT)))
 #define CALLOC_2(OUT, COUNT)       _CALLOC_(OUT, COUNT, sizeof(*(OUT)))
@@ -124,7 +190,7 @@ typedef signed char schar;
     do { OUT = calloc((COUNT), (SIZE)); } while(0)
 
 
-#define COPY(...) CPP_DISPATCH(COPY, __VA_ARGS__)
+#define COPY(...) CPP_DISPATCH(COPY, ENUM, __VA_ARGS__)
 
 #define COPY_2(OUT, IN)              _COPY_(OUT, IN,     1, sizeof(*(OUT)))
 #define COPY_3(OUT, IN, COUNT)       _COPY_(OUT, IN, COUNT, sizeof(*(OUT)))
@@ -134,7 +200,7 @@ typedef signed char schar;
     do { memcpy((OUT), (IN), (COUNT)*(SIZE)); } while(0)
 
 
-#define MOVE(...) CPP_DISPATCH(MOVE, __VA_ARGS__)
+#define MOVE(...) CPP_DISPATCH(MOVE, ENUM, __VA_ARGS__)
 
 #define MOVE_2(OUT, IN)              _MOVE_(OUT, IN,     1, sizeof(*(OUT)))
 #define MOVE_3(OUT, IN, COUNT)       _MOVE_(OUT, IN, COUNT, sizeof(*(OUT)))
@@ -144,7 +210,7 @@ typedef signed char schar;
     do { memmove((OUT), (IN), (COUNT)*(SIZE)); } while(0)
 
 
-#define FREE(...) do { CPP_DISPATCH(FREE, __VA_ARGS__) } while(0)
+#define FREE(...) do { CPP_DISPATCH(FREE, ENUM, __VA_ARGS__) } while(0)
 
 #define FREE_1(X) free(X);
 #define FREE_2(X, ...) free(X); FREE_1(__VA_ARGS__)
