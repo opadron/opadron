@@ -47,15 +47,23 @@ typedef signed char schar;
 #define intern static
 
 #ifndef DEBUG_LEVEL
-#    define DEBUG_LEVEL 0
+#   define DEBUG_LEVEL 1
 #endif
 
 #if defined(NDEBUG) || DEBUG_LEVEL <= 0
-#    define __no_debug__
+#   define __no_debug__
 #endif
 
-#define debug(...) __debug__(__VA_ARGS__+0)
-#define __debug__(N) if((N) == 0 || (N) < (DEBUG_LEVEL))
+#ifdef __no_debug__
+#   define debug(...)
+#   define ASSERT(EXPR)
+#else
+#   define debug(...) __debug__(__VA_ARGS__+0)
+#   define __debug__(N) if((N) == 0 || (N) < (DEBUG_LEVEL))
+
+#   include <assert.h>
+#   define ASSERT(EXPR) assert(EXPR)
+#endif
 
 #define segfault (*((hdl)NULL) = NULL)
 
