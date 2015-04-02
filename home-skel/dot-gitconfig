@@ -3,3 +3,5 @@
 	email = opadron@illinois.edu
 [push]
 	default = matching
+[alias]
+history = log --graph --decorate --oneline --simplify-by-decoration --all
