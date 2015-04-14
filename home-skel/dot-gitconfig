@@ -5,3 +5,4 @@
 	default = matching
 [alias]
 history = log --graph --decorate --oneline --simplify-by-decoration --all
+hist = log --graph --decorate --oneline --simplify-by-decoration --all
