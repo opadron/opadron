@@ -19,6 +19,8 @@ R_SPLIT_CODE = re.compile(r'''^([a-zA-Z][a-zA-Z0-9]{2}) - (.+)$''')
 
 R_TWO_DASH_LINE = re.compile(r'''^([a-zA-Z][a-zA-Z0-9 ]{5}) - (.+)$''')
 
+R_INCLUDE_LINE = re.compile(r'''^#include "(.+)"$''')
+
 R_SPLIT = re.compile(
     '^' + ''.join(
         ('({X}{{' + str(x) + '}})')
@@ -203,6 +205,44 @@ class Split(object):
         self.cls = cls
         self.com = com
 
+def iter_lines(ledger_path, visited_set=None):
+    if visited_set is None:
+        visited_set = set()
+
+    if ledger_path in visited_set:
+        return
+
+    visited_set.add(ledger_path)
+
+    with open(ledger_path) as f:
+        for line in f:
+            line = line.rstrip()
+            M = R_INCLUDE_LINE.match(line)
+            if M is not None:
+                target_path = M.group(1)
+                target_path = os.path.normpath(
+                    os.path.join(
+                        os.path.dirname(ledger_path),
+                        target_path
+                    )
+                )
+
+                for sub_line in iter_lines(target_path, visited_set):
+                    yield sub_line
+
+            if R_COMMENT.match(line) is not None: continue
+            if R_BLANK_LINE.match(line) is not None: continue
+
+            yield line
+
+def compute_path_hash(ledger_path):
+    result = hashlib.md5(os.path.abspath(ledger_path)).hexdigest()
+    return result
+
+def compute_checksum_hash(ledger_path):
+    result = hashlib.md5(''.join(iter_lines(ledger_path))).hexdigest()
+    return result
+
 def ingest(ledger_path):
     code_to_account_path = dict()
     split_codes = dict()
@@ -214,77 +254,71 @@ def ingest(ledger_path):
     last_split = None
     last_cls = None
 
-    with open(ledger_path) as f:
-        for line in f:
-            line = line.rstrip()
+    for line in iter_lines(ledger_path):
+        M = R_SPLIT_CODE.match(line)
+        if M is not None: # split code
+            key, value = M.group(1).strip(), M.group(2).strip()
+            split_codes[key] = value
 
-            if R_COMMENT.match(line) is not None: continue
-            if R_BLANK_LINE.match(line) is not None: continue
+            continue
 
-            M = R_SPLIT_CODE.match(line)
-            if M is not None: # split code
-                key, value = M.group(1).strip(), M.group(2).strip()
-                split_codes[key] = value
+        M = R_TWO_DASH_LINE.match(line)
+        if M is not None: # account code/commodity code
+            key, value = M.group(1).strip(), M.group(2).strip()
+            is_account = value.startswith('/')
 
-                continue
+            if is_account:
+                code_to_account_path[key] = value
+                Account.get(accounts, value).code = key
 
-            M = R_TWO_DASH_LINE.match(line)
-            if M is not None: # account code/commodity code
-                key, value = M.group(1).strip(), M.group(2).strip()
-                is_account = value.startswith('/')
+            else:
+                assert key not in commodities
+                commodities[key] = value
 
-                if is_account:
-                    code_to_account_path[key] = value
-                    Account.get(accounts, value).code = key
+            continue
 
+        # if we get here, it must be a transaction/split line
+        line, meta = line[:80], line[80:].strip()
+        M = R_SPLIT.match(line)
+
+        cls, date, desc, src, dst, amt, com = tuple(
+            M.group(i+1).strip() for i in range(7)
+        )
+
+        if desc: # new transaction
+            last_transaction = Transaction(date, desc)
+            transactions.append(last_transaction)
+
+        if ( src and dst and amt and com ): # new split
+            last_cls = cls or last_cls
+
+            if src in code_to_account_path:
+                src = code_to_account_path[src]
+            else:
+                assert src.startswith('/')
+                code_to_account_path[src] = src
+
+            if dst in code_to_account_path:
+                dst = code_to_account_path[dst]
+            else:
+                assert dst.startswith('/')
+                code_to_account_path[dst] = dst
+
+            src = Account.get(accounts, src)
+            dst = Account.get(accounts, dst)
+
+            last_split = Split(last_cls, src, dst, amt, com)
+            last_transaction.splits.append(last_split)
+
+            if meta:
+                key, val = meta.split(' ', 1)
+                key = key.strip()
+                val = val.strip()
+
+                if key == 'tag':
+                    last_split.tags.add(val)
                 else:
-                    assert key not in commodities
-                    commodities[key] = value
-
-                continue
-
-            # if we get here, it must be a transaction/split line
-            line, meta = line[:80], line[80:].strip()
-            M = R_SPLIT.match(line)
-
-            cls, date, desc, src, dst, amt, com = tuple(
-                M.group(i+1).strip() for i in range(7)
-            )
-
-            if desc: # new transaction
-                last_transaction = Transaction(date, desc)
-                transactions.append(last_transaction)
-
-            if ( src and dst and amt and com ): # new split
-                last_cls = cls or last_cls
-
-                if src in code_to_account_path:
-                    src = code_to_account_path[src]
-                else:
-                    assert src.startswith('/')
-                    code_to_account_path[src] = src
-
-                if dst in code_to_account_path:
-                    dst = code_to_account_path[dst]
-                else:
-                    assert dst.startswith('/')
-                    code_to_account_path[dst] = dst
-
-                src = Account.get(accounts, src)
-                dst = Account.get(accounts, dst)
-
-                last_split = Split(last_cls, src, dst, amt, com)
-                last_transaction.splits.append(last_split)
-
-                if meta:
-                    key, val = meta.split(' ', 1)
-                    key = key.strip()
-                    val = val.strip()
-
-                    if key == 'tag':
-                        last_split.tags.add(val)
-                    else:
-                        last_split.meta.add((key, val))
+                    last_split.meta.add((key, val))
 
     return accounts, transactions, commodities, split_codes, dict(
         (v, k) for (k, v) in code_to_account_path.items()
@@ -1026,6 +1060,20 @@ def format_rows(cur, headers=None):
         )
     ))
 
+def cache_check(ledger_path, ledger_checksum_path, ledger_db_path):
+    old_hash = None
+    new_hash = None
+    result = os.path.isfile(ledger_checksum_path)
+    if not result: return ( result, new_hash )
+
+    result = os.path.isfile(ledger_db_path)
+    if not result: return ( result, new_hash )
+
+    new_hash = compute_checksum_hash(ledger_path)
+    result = ( new_hash == old_hash )
+
+    return ( result, new_hash )
+
 @contextmanager
 def connect(ledger_path):
     from os import path
@@ -1037,51 +1085,23 @@ def connect(ledger_path):
     ensure_dir(checksum_dir)
     ensure_dir(db_dir)
 
-    ledger_full_path = path.abspath(ledger_path)
-    ledger_path_hash = hashlib.md5(ledger_full_path).hexdigest()
-
+    ledger_path_hash = compute_path_hash(ledger_path)
     ledger_checksum_path = path.join(checksum_dir, ledger_path_hash)
     ledger_db_path = path.join(db_dir, ledger_path_hash)
 
-    old_hash = None
-    new_hash = None
-    while True:
-        cache_hit = os.path.isfile(ledger_checksum_path)
-        if not cache_hit: break
-
-        cache_hit = os.path.isfile(ledger_db_path)
-        if not cache_hit: break
-
-        old_hash = open(ledger_checksum_path).read()
-
-        new_hash = hashlib.md5()
-        with open(ledger_path) as f:
-            for line in f:
-                line = line.strip()
-                if R_COMMENT.match(line) is not None: continue
-                if R_BLANK_LINE.match(line) is not None: continue
-                new_hash.update(line)
-
-        new_hash = new_hash.hexdigest()
-
-        cache_hit = ( old_hash == new_hash )
-        break
+    cache_hit, hash = cache_check(
+        ledger_path,
+        ledger_checksum_path,
+        ledger_db_path
+    )
 
     if cache_hit:
         with serial_connection(ledger_db_path) as conn:
             yield conn
 
     else:
-        if new_hash is None:
-            new_hash = hashlib.md5()
-            with open(ledger_path) as f:
-                for line in f:
-                    line = line.strip()
-                    if R_COMMENT.match(line) is not None: continue
-                    if R_BLANK_LINE.match(line) is not None: continue
-                    new_hash.update(line)
-
-            new_hash = new_hash.hexdigest()
+        if hash is None:
+            hash = compute_checksum_hash(ledger_path)
 
         try: os.remove(ledger_checksum_path)
         except OSError: pass
@@ -1188,7 +1208,7 @@ def connect(ledger_path):
                               for (key, value) in split.meta))
 
             with open(ledger_checksum_path, 'w') as f:
-                f.write(new_hash)
+                f.write(hash)
                 f.flush()
 
             yield conn
