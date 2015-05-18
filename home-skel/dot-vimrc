@@ -69,7 +69,7 @@ set   cursorline   " highlight current line
 set   cursorcolumn " highlight current column
 
 if &cursorline
-    hi CursorLine term=NONE cterm=NONE ctermbg=236 guibg=#333333
+    hi CursorLine term=NONE cterm=NONE ctermbg=233 guibg=#333333
     if the_color_scheme == "solarize"
         if the_background == "dark"
             hi CursorLine term=NONE cterm=NONE ctermbg=0 guibg=#333333
