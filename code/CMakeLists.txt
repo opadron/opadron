@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.6)
 enable_testing()
 project(code C)
 
-add_library(code id_allocator.c mem_stack.c)
+add_library(code id_allocator.c mem_stack.c tic.c)
 include_directories("${PROJECT_SOURCE_DIR}")
 
 add_subdirectory("tests")
