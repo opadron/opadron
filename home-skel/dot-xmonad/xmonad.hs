@@ -39,9 +39,7 @@ import XMonad.Actions.CycleWS
 -- The preferred terminal program, which
 -- is used in a binding below and by
 -- certain contrib modules.
--- myTerminal      = "gnome-terminal"
-myTerminal      = "gnome-terminal"
--- myTerminal      = "e"
+myTerminal      = "term-dark"
  
 -- Whether focus follows the mouse
 -- pointer.
@@ -97,6 +95,10 @@ myKeys conf@
     (   -- launch a terminal
       ( modm .|. shiftMask, xK_Return ),
       spawn $ XMonad.terminal conf
+
+    ),( -- launch an alternate terminal
+      ( modm .|. controlMask, xK_Return  ),
+      spawn "term-light"
 
     ),( -- launch dmenu
       ( modm              , xK_p  ),

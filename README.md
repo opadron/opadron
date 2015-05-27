@@ -13,4 +13,5 @@ Packages to install with this config:
  - tmux
  - dmenu
  - dmenu_path
+ - gconftool-2
 

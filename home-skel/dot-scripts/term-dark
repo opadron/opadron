@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+E="TERM=xterm-256color"
+E="$E AUTOLOAD=solarize_dircolors:solarize_dark"
+
+gnome-terminal                            \
+    --window-with-profile="solarize-dark" \
+    --command="env $E bash"
+
