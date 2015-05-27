@@ -1,0 +1,15 @@
+
+~/sys-setup/x-map-caps2esc.bash
+xrdb -load ~/.Xresources
+# feh --bg-tile Pictures/grid.png &
+feh --bg-tile Pictures/grid2.png &
+sleep 1s
+xcompmgr -CcF     \
+         -I -.015 \
+         -O -.03  \
+         -D 1 &> /dev/null &
+# display -window root Pictures/grid.bmp
+xsetroot -cursor_name left_ptr
+
+xmonad
+
