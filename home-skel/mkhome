@@ -13,10 +13,22 @@ if [ "$src" '=' "$dst" ] ; then
     exit 1
 fi
 
-self="$( basename "$( realpath "$0" )" )"
+exclusion_list=(
+    "$( basename "$( realpath "$0" )" )"
+    LICENSE
+)
+
 cd "$src"
 for path in * ; do
-    if [ "$path" '=' "$self" ] ; then continue ; fi
+    is_excluded=0
+    for ((i=0; i<${#exclusion_list[@]}; ++i)) ; do
+        if [ "$path" '=' "${exclusion_list[i]}" ] ; then
+            is_excluded=1
+            break
+        fi
+    done
+
+    if [ "$is_excluded" '=' '1' ] ; then continue ; fi
 
     tmp_dst="$dst/$path"
     if [ "${path:0:4}" '=' 'dot-' ] ; then
