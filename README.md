@@ -11,4 +11,6 @@ Packages to install with this config:
  - gnome-terminal
  - vim
  - tmux
+ - dmenu
+ - dmenu_path
 
