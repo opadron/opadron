@@ -40,7 +40,7 @@ import XMonad.Actions.CycleWS
 -- is used in a binding below and by
 -- certain contrib modules.
 -- myTerminal      = "gnome-terminal"
-myTerminal      = "term"
+myTerminal      = "gnome-terminal"
 -- myTerminal      = "e"
  
 -- Whether focus follows the mouse
@@ -99,7 +99,7 @@ myKeys conf@
       spawn $ XMonad.terminal conf
 
     ),( -- launch dmenu
-      ( modm              , xK_space  ),
+      ( modm              , xK_p  ),
       spawn "exe=`dmenu_path | dmenu` && eval \"exec $exe\""
 
     ),( -- launch gmrun
@@ -112,7 +112,7 @@ myKeys conf@
 
     ),( -- Rotate through the available
         -- layout algorithms
-      ( modm              , xK_p      ),
+      ( modm              , xK_space  ),
       sendMessage NextLayout
 
     ),( --  Reset the layouts on the
