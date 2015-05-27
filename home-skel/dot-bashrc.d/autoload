@@ -8,4 +8,5 @@ mod_import tab_complete
 mod_import disable_ixon
 mod_import local_rc_file
 mod_import force_us_utf8_locale
+mod_import solarize_dircolors
 
