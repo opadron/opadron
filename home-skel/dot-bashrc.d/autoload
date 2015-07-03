@@ -11,7 +11,11 @@ mod_import force_us_utf8_locale
 
 _old_ifs="$IFS"
 IFS=':'
+
 for module in $AUTOLOAD ; do
     mod_import "$module"
 done
+
+IFS="$_old_ifs"
+unset _old_ifs
 
