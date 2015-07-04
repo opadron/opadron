@@ -18,3 +18,6 @@ xcompmgr -CcfF      \
 xsetroot -cursor_name left_ptr
 
 exec xmonad
+
+killall chrome &> /dev/null
+
