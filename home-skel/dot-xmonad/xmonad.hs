@@ -21,7 +21,7 @@
 --
 -- http://www.haskell.org/haskellwiki
 --     /Xmonad/Notable_changes_since_0.8
- 
+
 import XMonad
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.EwmhDesktops
@@ -31,29 +31,29 @@ import XMonad.Actions.CycleWS
 import XMonad.Actions.SpawnOn
 import Data.Monoid
 import System.Exit
- 
+
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
 
 import XMonad.Actions.CycleWS
- 
+
 -- The preferred terminal program, which
 -- is used in a binding below and by
 -- certain contrib modules.
 myTerminal      = "term-dark"
- 
+
 -- Whether focus follows the mouse
 -- pointer.
 myFocusFollowsMouse :: Bool
 myFocusFollowsMouse = False
- 
+
 -- Whether clicks only focus
 myClickJustFocuses :: Bool
 myClickJustFocuses = False
- 
+
 -- Width of the window border in pixels.
-myBorderWidth   = 0
- 
+myBorderWidth   = 2
+
 -- modMask lets you specify which modkey
 -- you want to use. The default is
 -- mod1Mask ("left alt").  You may also
@@ -62,7 +62,7 @@ myBorderWidth   = 0
 -- emacs keybindings. The "windows key"
 -- is usually mod4Mask.
 myModMask = mod1Mask
- 
+
 -- The default number of workspaces
 -- (virtual screens) and their names.
 -- By default we use numeric strings,
@@ -76,12 +76,12 @@ myWorkspaces =
     "4", "5", "6",
     "7", "8", "9"
   ]
- 
+
 -- Border colors for unfocused and
 -- focused windows, respectively.
 myNormalBorderColor  = "#dddddd"
 myFocusedBorderColor = "#ff0000"
- 
+
 ----------------------------------------
 -- Key bindings. Add, modify or remove
 -- key bindings here.
@@ -241,8 +241,8 @@ myKeys conf@
       shiftToPrev >> prevWS
     )
   ]
- 
- 
+
+
 ----------------------------------------
 -- Mouse bindings: default actions bound
 -- to mouse events
@@ -277,10 +277,10 @@ myMouseBindings conf@
         -- the mouse scroll wheel
         -- (button4 and button5)
   ]
- 
+
 ----------------------------------------
 -- Layouts:
- 
+
 -- You can specify and transform your
 -- layouts by modifying these values.
 -- If you change layout bindings be sure
@@ -314,22 +314,22 @@ myLayout =
     -- partitions the screen into two
     -- panes
     tiled   = Tall nmaster delta ratio
- 
+
     -- The default number of windows in
     -- the master pane
     nmaster = 1
- 
+
     -- Default proportion of screen
     -- occupied by master pane
     ratio   = 1/2
- 
+
     -- Percent of screen to increment by
     -- when resizing panes
     delta   = 3/100
- 
+
 ----------------------------------------
 -- Window rules:
- 
+
 -- Execute arbitrary actions and
 -- WindowSet manipulations when managing
 -- a new window. You can use this to,
@@ -355,10 +355,10 @@ myManageHook = composeAll
  ,resource =?"desktop_window"-->doIgnore
  ,resource =?"kdesktop"      -->doIgnore
  ]
- 
+
 ----------------------------------------
 -- Event handling
- 
+
 -- Defines a custom handler function for
 -- X Events. The function should return
 -- (All True) if the default handler is
@@ -374,10 +374,10 @@ myManageHook = composeAll
 -- custom event hooks by combining them
 -- with ewmhDesktopsEventHook.
 myEventHook = mempty
- 
+
 ----------------------------------------
 -- Status bars and logging
- 
+
 -- Perform an arbitrary action on each
 -- internal state change or X event.
 -- See the 'XMonad.Hooks.DynamicLog'
@@ -392,10 +392,10 @@ myEventHook = mempty
 -- custom log hook by combining it with
 -- ewmhDesktopsLogHook.
 myLogHook = return ()
- 
+
 ----------------------------------------
 -- Startup hook
- 
+
 -- Perform an arbitrary action each time
 -- xmonad starts or is restarted with
 -- mod-q.  Used by, e.g.,
@@ -414,11 +414,11 @@ myLogHook = return ()
 -- by combining it with
 -- ewmhDesktopsStartup.
 myStartupHook = return ()
- 
+
 ----------------------------------------
 -- Now run xmonad with all the defaults
 -- we set up.
- 
+
 -- A structure containing your
 -- configuration settings, overriding
 -- fields in the default config. Any you
@@ -456,4 +456,4 @@ defaults = ewmh defaultConfig
 -- Run xmonad with the settings you
 -- specify. No need to modify this.
 main = xmonad defaults
- 
+
