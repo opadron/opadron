@@ -9,13 +9,12 @@ term-dark  &
 term-light &
 google-chrome &
 
-xcompmgr -CcfF       \
-         -r  '0.010' \
-         -I '-0.015' \
-         -O '-0.030' \
-         -D  '1'     &> /dev/null &
+xcompmgr -CcfF      \
+         -r'0.010'  \
+         -I'-0.015' \
+         -O'-0.030' \
+         -D'1'      &> /dev/null &
 
 xsetroot -cursor_name left_ptr
 
 exec xmonad
-
