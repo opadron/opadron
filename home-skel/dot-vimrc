@@ -20,7 +20,8 @@ set scrolloff=10
 set diffopt+=vertical,foldcolumn:0
 set hlsearch
 set incsearch
-set nonumber
+set number
+set numberwidth=4
 set foldcolumn=0
 set foldmethod=syntax
 set wildmode=longest,list
@@ -47,13 +48,17 @@ syntax enable
 let the_background="dark"
 let the_color_scheme="vividchalk"
 
-if !&diff
+if !&diff || 1
     if $VIMCOLORBACKGROUND != ""
         let the_background=$VIMCOLORBACKGROUND
     endif
 
     if $VIMCOLORSCHEME != ""
         let the_color_scheme=$VIMCOLORSCHEME
+        let g:solarized_termtrans=1
+        let g:solarized_bold=1
+        let g:solarized_underline=1
+        let g:solarized_italic=1
     endif
 endif
 
@@ -70,7 +75,7 @@ set   cursorcolumn " highlight current column
 
 if &cursorline
     hi CursorLine term=NONE cterm=NONE ctermbg=233 guibg=#333333
-    if the_color_scheme == "solarize"
+    if the_color_scheme == "solarized"
         if the_background == "dark"
             hi CursorLine term=NONE cterm=NONE ctermbg=0 guibg=#333333
         else
@@ -81,7 +86,7 @@ endif
 
 if &cursorcolumn
     hi CursorColumn term=NONE cterm=NONE ctermbg=233 guibg=#333333
-    if the_color_scheme == "solarize"
+    if the_color_scheme == "solarized"
         if the_background == "dark"
             hi CursorColumn term=NONE cterm=NONE ctermbg=0 guibg=#333333
         else
@@ -95,7 +100,7 @@ match OverLength /\%81v.\+/
 
 if the_background == "dark"
     highlight Folded term=standout ctermfg=233 ctermbg=8
-    if the_color_scheme == "solarize"
+    if the_color_scheme == "solarized"
         highlight Folded term=standout ctermfg=4 ctermbg=23
     endif
 else
@@ -116,7 +121,7 @@ let g:indent_guides_auto_colors = 0
 let indent_color_odd=232
 let indent_color_even=233
 
-if the_color_scheme == "solarize"
+if the_color_scheme == "solarized"
     if the_background == "dark"
         let indent_color_odd=0
         let indent_color_even=8

@@ -1116,3 +1116,10 @@ autocmd ColorScheme * if g:colors_name != "solarized" | silent! aunmenu Solarize
 " vim:foldmethod=marker:foldlevel=0
 "}}}
 
+" NOTE(opadron) tweak colorscheme to look reasonable in diff mode
+
+highlight DiffAdd    cterm=bold ctermfg=5 ctermbg=17 gui=none guifg=bg guibg=Red
+highlight DiffDelete cterm=bold ctermfg=5 ctermbg=17 gui=none guifg=bg guibg=Red
+highlight DiffChange cterm=bold ctermfg=5 ctermbg=17 gui=none guifg=bg guibg=Red
+highlight DiffText   cterm=bold ctermfg=5 ctermbg=88 gui=none guifg=bg guibg=Red
+
