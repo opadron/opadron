@@ -24,6 +24,7 @@
  
 import XMonad
 import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.EwmhDesktops
 import XMonad.Util.EZConfig
 import XMonad.Actions.MouseGestures
 import XMonad.Actions.CycleWS
@@ -425,7 +426,9 @@ myStartupHook = return ()
 -- defined in xmonad/XMonad/Config.hs
 --
 -- No need to modify this.
-defaults = defaultConfig
+--
+-- defaults = defaultConfig
+defaults = ewmh defaultConfig
  {
  -- simple stuff
  terminal          =myTerminal          ,
@@ -437,11 +440,11 @@ defaults = defaultConfig
  workspaces        =myWorkspaces        ,
  normalBorderColor =myNormalBorderColor ,
  focusedBorderColor=myFocusedBorderColor,
-     
+
  -- key bindings
  keys              =myKeys              ,
  mouseBindings     =myMouseBindings     ,
-    
+
  -- hooks, layouts
  layoutHook        =myLayout            ,
  manageHook        =myManageHook        ,
