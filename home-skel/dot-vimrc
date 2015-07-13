@@ -143,6 +143,9 @@ execute "autocmd VimEnter,Colorscheme * :hi IndentGuidesEven " .
     \ "guibg=" . indent_color_even . " ctermbg=" . indent_color_even
 
 
+autocmd FileType python setlocal completeopt-=preview
+autocmd FileType python setlocal omnifunc=
+
 " super tab
 let g:SuperTabSetDefaultCompletionType="context"
 let g:SuperTabLongestEnhanced=1
@@ -170,9 +173,6 @@ let g:airline_inactive_collapse=1
 let g:airline_exclude_preview=1
 
 let g:AutoPairsFlyMode=1
-
-autocmd FileType python setlocal completeopt-=preview
-
 
 
 
