@@ -1,8 +1,9 @@
 [user]
 	name = Omar Padron
-	email = opadron@illinois.edu
+	email = omar.padron@kitware.com
 [push]
 	default = matching
 [alias]
-history = log --graph --decorate --oneline --all
-hist = log --graph --decorate --oneline --simplify-by-decoration --all
+hist = log --graph --decorate --oneline --all
+history = log --graph --decorate --oneline --simplify-by-decoration --all
+log1 = log --oneline
