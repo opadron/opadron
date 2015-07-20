@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+
+import sys
+import urllib
+
+import os
+import os.path
+
+import subprocess as sp
+
+args = [
+    'ack',
+    '--color',
+    '--flush',
+    '--group',
+    '--pager=less -R -X -F',
+    '--recurse',
+    '-s',
+    '--smart-case',
+    '--sort-files',
+    '--show-types',
+    '--match', '|'.join(
+        '(%s)' % x for x in sys.argv[1:]
+    ),
+]
+
+sp.call(args)
+
