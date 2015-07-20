@@ -37,5 +37,44 @@ for path in * ; do
 
     rm -rf "$tmp_dst"
     cp -r "$path" "$tmp_dst"
+    chmod -R g-w "$tmp_dst"
+
+    # look for encrypted files
+    find "$tmp_dst" -type f -iname '*.asc' | while read enc_src ; do
+        n="${#enc_src}"
+        n="$(( n - 4 ))"
+        enc_dst="${enc_src:0:$n}"
+
+        perms=600
+        if [ -x "$enc_src" ] ; then perms=700 ; fi
+        touch "$enc_dst"
+        chmod "$perms" "$enc_dst"
+
+        gpg -q --decrypt "$enc_src" >> "$enc_dst" && rm "$enc_src"
+    done
 done
+
+# generate symlinks to ssh keys
+(
+    cd ~/.ssh
+    for pub_key in keys/*.pub ; do
+        n="${#pub_key}"
+        n="$(( n - 4 ))"
+        priv_key="${pub_key:0:$n}"
+
+        ln -s "$pub_key"
+        ln -s "$priv_key"
+    done
+
+    hn="$( hostname )"
+    my_key="keys/$hn"
+    if [ '!' -f "$my_key" -o '!' -f "${my_key}.pub" ] ; then
+        my_key="keys/anonymous"
+    fi
+
+    ln -s "$my_key"       id_rsa
+    ln -s "${my_key}.pub" id_rsa.pub
+
+    chmod 755 .
+)
 

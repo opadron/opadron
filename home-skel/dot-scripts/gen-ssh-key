@@ -1,0 +1,116 @@
+#! /usr/bin/env bash
+
+filter() {
+    egrep -v '^[ \t]*$' | egrep -v '^[ \t]*#.*$'
+}
+
+host_alias="$1" ; shift
+fqdn="$1"       ; shift
+
+hn="$( hostname )"
+
+# add host entry to config
+tmp_file="$HOME/.ssh/tmp_config"
+cat > "$tmp_file" << EOF
+# Modify the host config below.
+# Save an empty file to cancel.
+Host $host_alias $fqdn
+Hostname $fqdn
+IdentityFile ~/.ssh/$host_alias
+User $USER
+EOF
+"$EDITOR" "$tmp_file"
+
+if [ "$( cat "$tmp_file" | filter | wc -l )" '=' '0' ] ; then
+    echo "Key generation canceled" 1>&2
+    rm -f "$tmp_file"
+    exit 1
+fi
+
+(
+    cat "$tmp_file" | filter
+    echo
+) >> "$HOME/.ssh/config"
+
+# try to figure out the *real* ssh user from the config
+ssh_user="$USER"
+candidate_user="$(
+    cat "$tmp_file"                 |
+    egrep '^[ \t]*User[ \t]+'       |
+    sed -re 's/User[ \t]+(.+)/\1/g'
+)"
+if [ -n "$candidate_user" ] ; then
+    ssh_user="$candidate_user"
+fi
+
+rm -f "$tmp_file"
+
+# generate key pair
+ssh-keygen -q -t rsa -N "" -f "$HOME/.ssh/keys/tmp"
+mv "$HOME/.ssh/keys/tmp" "$HOME/.ssh/keys/$host_alias"
+
+sed_script="s/^(.+)[ \\t]+"
+sed_script="$sed_script$USER\\@$hn"
+sed_script="$sed_script\$/\\1 "
+sed_script="$sed_script$ssh_user@$host_alias/g"
+
+cat "$HOME/.ssh/keys/tmp.pub" |
+    sed -re "$sed_script" > "$HOME/.ssh/keys/${host_alias}.pub"
+
+rm "$HOME/.ssh/keys/tmp.pub"
+
+chmod 600 "$HOME/.ssh/keys/$host_alias"
+chmod 644 "$HOME/.ssh/keys/${host_alias}.pub"
+
+# set up symbolic links
+(
+    cd "$HOME/.ssh"
+    ln -s "keys/$host_alias"
+    ln -s "keys/${host_alias}.pub"
+
+    if [ "$hn" '=' "$host_alias" ] ; then
+        rm -f id_rsa id_rsa.pub
+        ln -s "keys/$host_alias"       id_rsa
+        ln -s "keys/${host_alias}.pub" id_rsa.pub
+    fi
+)
+
+# add pub key to authorized_keys
+cat "$HOME/.ssh/keys/${host_alias}.pub" >> "$HOME/.ssh/authorized_keys"
+
+# add hardware entries to known_hosts
+ssh-keyscan -H "$fqdn" $* >> "$HOME/.ssh/known_hosts"
+
+echo -n "Personal repo path (blank=no commit): "
+read repo
+
+if [ -n "$repo" ] ; then
+    old_repo=
+    while [ "$old_repo" '!=' "$repo" ] ; do
+        old_repo="$repo"
+        repo="${repo/'~'/$HOME}"
+    done
+    repo="$( readlink -e "$repo" )"
+
+    cp "$HOME/.ssh/config" "$repo/home-skel/dot-ssh"
+    cp "$HOME/.ssh/authorized_keys" "$repo/home-skel/dot-ssh"
+    cp "$HOME/.ssh/known_hosts" "$repo/home-skel/dot-ssh"
+
+    gpg --encrypt --sign --armor -r omarpadronmail \
+        "$HOME/.ssh/keys/$host_alias"
+    mv "$HOME/.ssh/keys/${host_alias}.asc" "$repo/home-skel/dot-ssh/keys"
+    cp "$HOME/.ssh/keys/${host_alias}.pub" "$repo/home-skel/dot-ssh/keys"
+
+    (
+        cd "$repo"
+
+        git add "home-skel/dot-ssh/config"                 \
+                "home-skel/dot-ssh/authorized_keys"        \
+                "home-skel/dot-ssh/known_hosts"            \
+                "home-skel/dot-ssh/keys/${host_alias}.asc" \
+                "home-skel/dot-ssh/keys/${host_alias}.pub"
+
+        git commit --edit -m "add ssh key: $host_alias"
+    )
+fi
+
