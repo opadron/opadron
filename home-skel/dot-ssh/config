@@ -8,3 +8,8 @@ Hostname sting.kitware.com
 IdentityFile ~/.ssh/sting
 User opadron
 
+Host github www.github.com
+Hostname www.github.com
+IdentityFile ~/.ssh/github
+User git
+
