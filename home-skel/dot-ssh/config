@@ -13,3 +13,8 @@ Hostname www.github.com
 IdentityFile ~/.ssh/github
 User git
 
+Host chausara chausara.kitware.com
+Hostname chausara.kitware.com
+IdentityFile ~/.ssh/chausara
+User opadron
+
