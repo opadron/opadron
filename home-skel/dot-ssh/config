@@ -3,3 +3,8 @@ Host *
 ServerAliveInterval 30
 ServerAliveCountMax 100
 
+Host sting sting.kitware.com
+Hostname sting.kitware.com
+IdentityFile ~/.ssh/sting
+User opadron
+
