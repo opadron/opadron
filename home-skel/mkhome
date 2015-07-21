@@ -16,6 +16,7 @@ fi
 exclusion_list=(
     "$( basename "$( realpath "$0" )" )"
     LICENSE
+    EXTERNAL_LICENSES
 )
 
 cd "$src"
