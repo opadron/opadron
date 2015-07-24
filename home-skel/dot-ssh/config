@@ -18,3 +18,8 @@ Hostname chausara.kitware.com
 IdentityFile ~/.ssh/chausara
 User opadron
 
+Host kitware-gitlab gitlab.kitware.com
+Hostname gitlab.kitware.com
+IdentityFile ~/.ssh/kitware-gitlab
+User git
+
