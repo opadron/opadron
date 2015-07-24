@@ -1,0 +1,23 @@
+#! /usr/bin/env bash
+
+if [ -z "$__colors_guard" ] ; then __colors_guard=1
+source "$HOME/.bash-lib/init"
+
+TERM_COLORS_RED="$(         echo -e '\x1b[0;31m' )"
+TERM_COLORS_GREEN="$(       echo -e '\x1b[0;32m' )"
+TERM_COLORS_YELLOW="$(      echo -e '\x1b[0;33m' )"
+TERM_COLORS_BLUE="$(        echo -e '\x1b[0;34m' )"
+TERM_COLORS_CYAN="$(        echo -e '\x1b[0;36m' )"
+TERM_COLORS_WHITE="$(       echo -e '\x1b[0;37m' )"
+
+TERM_COLORS_BOLD_RED="$(    echo -e '\x1b[1;31m' )"
+TERM_COLORS_BOLD_GREEN="$(  echo -e '\x1b[1;32m' )"
+TERM_COLORS_BOLD_YELLOW="$( echo -e '\x1b[1;33m' )"
+TERM_COLORS_BOLD_BLUE="$(   echo -e '\x1b[1;34m' )"
+TERM_COLORS_BOLD_CYAN="$(   echo -e '\x1b[1;36m' )"
+TERM_COLORS_BOLD_WHITE="$(  echo -e '\x1b[1;37m' )"
+
+TERM_COLORS_RESET="$(       echo -e '\x1b[0m'    )"
+
+fi #!__colors_guard
+

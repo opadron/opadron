@@ -1,5 +1,10 @@
 #! /usr/bin/env bash
 
+# NOTE: no guard
+source "$HOME/.bash-lib/init"
+
+eval "$( dircolors ~/.dircolors )"
+
 export VIMCOLORSCHEME=""
 export VIMCOLORBACKGROUND=""
 

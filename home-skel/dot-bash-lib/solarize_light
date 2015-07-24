@@ -1,0 +1,10 @@
+#! /usr/bin/env bash
+
+# NOTE: no guard
+source "$HOME/.bash-lib/init"
+
+eval "$( dircolors ~/.solarize-dircolors )"
+
+export VIMCOLORSCHEME=solarized
+export VIMCOLORBACKGROUND=light
+

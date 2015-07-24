@@ -1,6 +1,7 @@
 #! /usr/bin/env bash
 
-source "$( dirname "$0" )/dot-bashrc.d/commonlib"
+source "$( dirname "$0" )/dot-bash-lib/commonlib" &> /dev/null
+source "$( dirname "$0" )/dot-bash-lib/introspection" &> /dev/null
 
 src="$( realpath "$( dirname "$( realpath "$0" )" )" )"
 dst="$1"

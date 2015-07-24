@@ -13,4 +13,7 @@ Packages to install with this config:
  - dmenu
  - dmenu_path
  - gconftool-2
+ - gnupg
+ - gpg-agent
+ - pinentry-curses
 

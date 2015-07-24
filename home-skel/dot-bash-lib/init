@@ -1,0 +1,20 @@
+#! /usr/bin/env bash
+
+if [ -z "$__bash_lib_guard" ] ; then __bash_lib_guard=1
+
+__bashlib_dir="$HOME/.bash-lib"
+
+mload() {
+    while [ -n "$*" ] ; do
+        local module="$1"
+        shift
+
+        local module_file="$__bashlib_dir/$module"
+        if [ -f "$module_file" ] ; then
+            source "$module_file"
+        fi
+    done
+}
+
+fi # !__bash_lib_guard
+

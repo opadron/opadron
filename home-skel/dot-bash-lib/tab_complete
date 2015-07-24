@@ -1,6 +1,9 @@
 #! /usr/bin/env bash
 
-mod_import commonlib
+if [ -z "$__tab_complete_guard" ] ; then __tab_complete_guard=1
+source "$HOME/.bash-lib/init"
+
+mload commonlib
 
 if ! shopt -oq posix; then
     envappend tc_path "/usr/share/bash-completion"
@@ -15,4 +18,6 @@ if ! shopt -oq posix; then
     unset tc
     unset tc_path
 fi
+
+fi #!__tab_complete_guard
 

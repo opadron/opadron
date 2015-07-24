@@ -1,0 +1,54 @@
+#! /usr/bin/env bash
+
+if [ -z "$__gpg_agent_guard" ] ; then __gpg_agent_guard=1
+source "$HOME/.bash-lib/init"
+
+mload commonlib
+
+if check_exit_code _ which gpg-agent ; then
+    GPG_AGENT_DIR="$HOME/.gpg-agent"
+    mkdir -p "$GPG_AGENT_DIR"
+
+    # Check for a gpg-agent environment file with the current shell's pid.
+    # This file *must* be a stale file that should be cleaned up.
+    rm -f "$GPG_AGENT_DIR/$$"
+
+    # look for a gpg-agent environment file created by some ancestor shell
+    env_file=
+    for ancestor_pid in $( pid_walk "$( ppid "$$" )" ) ; do
+        if [ -f "$GPG_AGENT_DIR/$ancestor_pid" ] ; then
+            env_file="$GPG_AGENT_DIR/$ancestor_pid"
+            break
+        fi
+    done
+
+    # if one is not found, create one for this shell and its subshells
+    if [ -z "$env_file" ] ; then
+        env_file="$GPG_AGENT_DIR/$$"
+
+        # set the file up for removal on exit (before it is even created)
+        trap "rm -f $GPG_AGENT_DIR/$$" 0 1 2 3 15
+
+        # kick off the agent
+        pinentry="$( which pinentry )"
+        if [ -z "$pinentry" ] ; then
+            pinentry="$( which pinentry-curses )"
+        fi
+
+        gpg-agent --daemon                                          \
+                  --enable-ssh-support                              \
+                  --pinentry-program "$pinentry"                    \
+                  --write-env-file "$GPG_AGENT_DIR/$$" &> /dev/null
+    fi
+
+    # by this point, we have an environment file to source
+    source "$env_file"
+    unset env_file
+
+    export GPG_AGENT_INFO
+    export SSH_AUTH_SOCK
+    export GPG_TTY="$( tty )"
+fi
+
+fi #!__gpg_agent_guard
+

@@ -1,11 +1,14 @@
 #! /usr/bin/env bash
 
-mod_import colors
+if [ -z "$__prompt_guard" ] ; then __prompt_guard=1
+source "$HOME/.bash-lib/init"
+
+mload commonlib
+mload colors
 
 function check_sum() {
     for com in md5 md5sum shasum ; do
-        which "$com" &> /dev/null
-        if [ "$?" '=' '0' ] ; then
+        if check_exit_code _ which $com ; then
             echo "$*" | "$com"
             break
         fi
@@ -26,9 +29,9 @@ function __prompt_update() {
 
     if [ -z "$__prompt_shell_level_flag" ] ; then
         x=
-        x="${x}\[$TERM_COLORS_BLUE\]("
-        x="${x}\[$TERM_COLORS_blue\]$SHLVL"
-        x="${x}\[$TERM_COLORS_BLUE\])"
+        x="${x}\[$TERM_COLORS_BOLD_BLUE\]("
+        x="${x}\[$TERM_COLORS_BLUE\]$SHLVL"
+        x="${x}\[$TERM_COLORS_BOLD_BLUE\])"
         x="${x}\[$TERM_COLORS_RESET\]"
 
         __prompt_shell_level="$x"
@@ -52,9 +55,9 @@ function __prompt_update() {
     x=
     if [ -n "$__prompt_git_remote_status" ] ; then
         x="${x} "
-        x="${x}\[$TERM_COLORS_YELLOW\]("
-        x="${x}\[$TERM_COLORS_yellow\]$__prompt_git_remote_status"
-        x="${x}\[$TERM_COLORS_YELLOW\])"
+        x="${x}\[$TERM_COLORS_BOLD_YELLOW\]("
+        x="${x}\[$TERM_COLORS_YELLOW\]$__prompt_git_remote_status"
+        x="${x}\[$TERM_COLORS_BOLD_YELLOW\])"
         x="${x}\[$TERM_COLORS_RESET\]"
         __prompt_git_remote_status="$x"
     fi
@@ -76,9 +79,9 @@ function __prompt_update() {
 
         x=
         x="${x}\[$TERM_COLORS_RESET\] "
-        x="${x}\[$TERM_COLORS_RED\]("
-        x="${x}\[$TERM_COLORS_red\]$__prompt_git_branch"
-        x="${x}\[$TERM_COLORS_RED\])"
+        x="${x}\[$TERM_COLORS_BOLD_RED\]("
+        x="${x}\[$TERM_COLORS_RED\]$__prompt_git_branch"
+        x="${x}\[$TERM_COLORS_BOLD_RED\])"
         x="${x}\[$TERM_COLORS_RESET\]"
 
         __prompt_git_branch="$x"
@@ -88,7 +91,7 @@ function __prompt_update() {
         x=
         if [ "$USER" '=' 'root' ] ; then
             x="${x}\[$( echo -e '\x1b[5;7;47m' )\]"
-            x="${x}\[$TERM_COLORS_RED\]R"
+            x="${x}\[$TERM_COLORS_BOLD_RED\]R"
             x="${x}\[$TERM_COLORS_RESET\] "
         fi
 
@@ -98,35 +101,37 @@ function __prompt_update() {
 
     PS1=
     # date
-    # PS1="${PS1}\\[$TERM_COLORS_blue\\]\`date '+%m'\`"
-    # PS1="${PS1}\\[$TERM_COLORS_BLUE\\]\`date '+%d'\`"
+    # PS1="${PS1}\\[$TERM_COLORS_BLUE\\]\`date '+%m'\`"
+    # PS1="${PS1}\\[$TERM_COLORS_BOLD_BLUE\\]\`date '+%d'\`"
     # PS1="${PS1}\\[$TERM_COLORS_RESET\\]"
-    
+
     # time
-    # PS1="${PS1}\\[$TERM_COLORS_cyan\\]\`date '+%k'\`"
-    # PS1="${PS1}\\[$TERM_COLORS_CYAN\\]\`date '+%M'\`"
+    # PS1="${PS1}\\[$TERM_COLORS_CYAN\\]\`date '+%k'\`"
+    # PS1="${PS1}\\[$TERM_COLORS_BOLD_CYAN\\]\`date '+%M'\`"
     # PS1="${PS1}\\[$TERM_COLORS_RESET\\]"
-    
+
     # machine status
     # PS1="${PS1}`uname_at_host`"
     # PS1="${PS1}\\[$TERM_COLORS_RESET\\] "
-    
+
     PS1="${PS1}$__prompt_shell_level"
     PS1="${PS1}$__prompt_number_of_jobs"
     PS1="${PS1} "
-    
-    PS1="${PS1}\\[$TERM_COLORS_GREEN\\]["
-    PS1="${PS1}\\[$TERM_COLORS_green\\]\\W"
-    
+
+    PS1="${PS1}\\[$TERM_COLORS_BOLD_GREEN\\]["
+    PS1="${PS1}\\[$TERM_COLORS_GREEN\\]\\W"
+
     PS1="${PS1}$__prompt_git_branch"
     PS1="${PS1}$__prompt_git_remote_status"
-    
-    PS1="${PS1}\\[$TERM_COLORS_GREEN\\]]"
-    
+
+    PS1="${PS1}\\[$TERM_COLORS_BOLD_GREEN\\]]"
+
     PS1="${PS1}\\[$TERM_COLORS_RESET\\] "
     PS1="${PS1}$__prompt_is_root"
 
 }
 
 export PROMPT_COMMAND=__prompt_update
+
+fi #!__prompt_guard
 

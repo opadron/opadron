@@ -1,59 +1,20 @@
 #! /usr/bin/env bash
 
-if [ -z "$BASHRC_SOURCED" ] ; then
-    BASHRC_SOURCED=1
+if [ -z "$__bashrc_guard" ] ; then __bashrc_guard=1
+source "$HOME/.bash-lib/init"
 
-    mod_loaded() {
-        while [ -n "$*" ] ; do
-            local module="$1"
-            shift
+mload autoload
 
-            if [ "$( eval 'echo $require_modules_'"$module" )" '!=' '1' ] ; then
-                return 1
-            fi
-        done
+mload aliases
+mload commonlib
+mload disable_ixon
+mload environment
+mload force_us_utf8_locale
+mload gpg_agent
+mload introspection
+mload local_rc_file
+mload prompt
+mload tab_complete
 
-        return 0
-    }
-
-    mod_load() {
-        while [ -n "$*" ] ; do
-            local module="$1"
-            shift
-
-            local module_file="$HOME/.bashrc.d/$module"
-            if [ -f "$module_file" ] ; then
-                eval 'require_modules_'"$module='1'"
-                source "$module_file"
-            fi
-        done
-    }
-
-    mod_import() {
-        while [ -n "$*" ] ; do
-            local module="$1"
-            shift
-
-            if mod_loaded "$module" ; then
-                continue
-            else
-                mod_load "$module"
-            fi
-        done
-    }
-
-    mod_import autoload
-
-    # function _x_comp_func() {
-    #     local files=(
-    #         "$HOME/.local/scripts/$2"*
-    #     )
-    # 
-    #     [[ -e "${files[0]}" ]] &&
-    #         COMPREPLY=( "${files[@]##*/}" )
-    # }
-    # 
-    # complete -F _x_comp_func x
-fi
-
+fi # !__bashrc_guard
 

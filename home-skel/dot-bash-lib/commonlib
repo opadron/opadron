@@ -1,0 +1,260 @@
+#! /usr/bin/env bash
+
+if [ -z "$__commonlib_guard" ] ; then __commonlib_guard=1
+source "$HOME/.bash-lib/init"
+
+function envget() {
+    while [ -n "$*" ] ; do
+        local key="$1" ; shift
+        eval 'echo $'"$key"
+    done
+}
+
+function envset() {
+    while [ -n "$*" ] ; do
+        local key="$1" ; shift
+        local value="$1" ; shift
+
+        if [ -z "$value" ] ; then
+            unset $key
+        else
+            eval "$key="'"'"$value"'"'
+        fi
+    done
+}
+
+function check_exit_code() {
+    local result_var="$1" ; shift
+    local result_code=
+
+    eval "
+        $@ &> /dev/null
+        envset result_code \"\$?\"
+        envset $result_var \"\$result_code\"
+    "
+
+    return $result_code
+}
+
+function all() {
+    local result=0
+
+    while [ -n "$*" ] ; do
+        local var="$1" ; shift
+        local val="$( envget "$var" )"
+
+        if [ "$(( val == 0 ))" '=' '1' -o -z "$val" ] ; then
+            result=1
+            break
+        fi
+    done
+
+    return $result
+}
+
+function any() {
+    local result=1
+
+    while [ -n "$*" ] ; do
+        local var="$1" ; shift
+        local val="$( envget "$var" )"
+
+        if [ "$(( val == 0 ))" '!=' '1' -a -n "$val" ] ; then
+            result=0
+            break
+        fi
+    done
+
+    return $result
+}
+
+function check_output() {
+    local result_var="$1" ; shift
+    local result_code=
+
+    eval "
+        envset $result_var \"\$( $@ 2> /dev/null )\"
+        envset result_code=\"\$?\"
+    "
+
+    return $result_code
+}
+
+function check_command() {
+    local result_var="$1" ; shift
+    local result_code_var="${result_var}_code"
+
+    eval "
+        envset $result_var \"\$( $@ 2> /dev/null )\"
+        envset $result_code_var=\"\$?\"
+    "
+
+    return $result_code
+}
+
+function envappend() {
+    local sep=':'
+
+    local regex='[\.;:\\/, -]'
+    if [[ "$1" =~ $regex ]] ; then
+        sep="$1" ; shift
+    fi
+
+    local var="$1" ; shift
+    local val="$1" ; shift
+    while [ -n "$*" ] ; do
+        val="$val$sep$1" ; shift
+    done
+
+    if [ -z "$( envget "$var" )" ] ; then
+        envset "$var" "$val"
+    else
+        envset "$var" "$( envget "$var" )$sep$val"
+    fi
+}
+
+function envpush() {
+    local sep=':'
+
+    local regex='[\.;:\\/, -]'
+    if [[ "$1" =~ $regex ]] ; then
+        sep="$1" ; shift
+    fi
+
+    local var="$1" ; shift
+    local val="$1" ; shift
+    while [ -n "$*" ] ; do
+        val="$val$sep$1" ; shift
+    done
+
+    if [ -z "$( envget "$var" )" ] ; then
+        envset "$var" "$val"
+    else
+        envset "$var" "$val$sep$( envget "$var" )"
+    fi
+}
+
+realpath . &> /dev/null
+if [ "$?" '!=' '0' ]; then
+    function realpath() {
+        python -c "$(
+            echo 'import os.path as p'
+            echo 'import sys'
+            echo 'for arg in sys.argv[1:]:'
+            echo '    print p.abspath(arg)'
+        )" "$@"
+    }
+fi
+
+function searchpath() {
+    local path="$( envget $1 )" ; shift
+    local file_glob="$1" ; shift
+
+    ret_code=0
+
+    while [ -n "$path" ] ; do
+        local dir="${path/:*/}"
+        local ndir="${#dir}"
+        path="${path:$(( ndir + 1 ))}"
+
+        if [ -d "$dir" ] ; then
+            eval_line='find "$dir" -maxdepth 1 -iname $file_glob'
+
+            if [ "$ret_code" '=' '0' ] ; then
+                eval "$eval_line" | while read LINE ; do
+                    echo "$LINE"
+                    ret_code=1
+                done
+            else
+                eval "$eval_line"
+            fi
+        fi
+    done
+
+    return "$ret_code"
+}
+
+function platform() {
+    os="$1"
+    if [ -z "$os" ] ; then os="$OSTYPE" ; fi
+
+    case "$os" in
+        linux*)   echo "LINUX"   ;;
+        darwin*)  echo "MAC"     ;;
+        msys*)    echo "WINDOWS" ;;
+        solaris*) echo "SOLARIS" ;;
+        bsd*)     echo "BSD"     ;;
+        *)        echo "UNKNOWN" ;;
+    esac
+}
+
+function push_path() {
+    local path_var="$1" ; shift
+    while [ -n "$*" ] ; do
+        dir="$1" ; shift
+        if [ -d "$dir" ] ; then
+            envpush $path_var "$dir"
+        fi
+    done
+}
+
+function push_install() {
+    while [ -n "$*" ] ; do
+        dir="$( realpath "$1" )" ; shift
+
+        push_path PATH               "$dir/bin"
+        push_path PATH               "$dir/sbin"
+        push_path C_INCLUDE_PATH     "$dir/include"
+        push_path CPLUS_INCLUDE_PATH "$dir/include"
+
+        push_path LD_LIBRARY_PATH    "$dir/lib"
+        push_path LD_LIBRARY_PATH    "$dir/lib32"
+        push_path LD_LIBRARY_PATH    "$dir/lib64"
+
+        push_path LD_RUN_PATH        "$dir/lib"
+        push_path LD_RUN_PATH        "$dir/lib32"
+        push_path LD_RUN_PATH        "$dir/lib64"
+
+        if [ "$INTROSPECT_PLATFORM" '=' 'MAC' ] ; then
+            push_path DYLD_RUN_PATH  "$dir/lib"
+            push_path DYLD_RUN_PATH  "$dir/lib32"
+            push_path DYLD_RUN_PATH  "$dir/lib64"
+        fi
+
+        push_path NODE_PATH           "$dir/lib/node_modules"
+    done
+}
+
+function ppid() {
+    while [ -n "$*" ] ; do
+        local pid="$1" ; shift
+        if [ -z "$pid" ] ; then
+            pid="$$"
+        fi
+
+        local line="$( ps -ef | awk "\$2==$pid{print}" )"
+        local result='x'
+        if [ -n "$line" ] ; then
+            result="$( echo "$line" | awk '{print $3}' )"
+        fi
+
+        echo "$result"
+    done
+}
+
+function pid_walk() {
+    local pid="$1"
+    if [ -z "$pid" ] ; then
+        pid="$$"
+    fi
+
+    while [ -n "$pid" -a "$pid" '!=' 'x' ] ; do
+        echo "$pid"
+        pid="$( ppid "$pid" )"
+    done
+}
+
+mload introspection
+
+fi #!__commonlib_guard
+

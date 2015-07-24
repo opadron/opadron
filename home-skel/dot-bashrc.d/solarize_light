@@ -1,5 +1,0 @@
-#! /usr/bin/env bash
-
-export VIMCOLORSCHEME=solarized
-export VIMCOLORBACKGROUND=light
-

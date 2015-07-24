@@ -1,0 +1,37 @@
+#! /usr/bin/env bash
+
+if [ -z "$__environment_guard" ] ; then __environment_guard=1
+source "$HOME/.bash-lib/init"
+
+mload commonlib
+
+export SCRIPTS="$HOME/.scripts"
+envpush PATH "$SCRIPTS"
+
+export LOCAL="$HOME/.local"
+
+for dir in "$LOCAL"/* ; do
+    if [ '!' -d "$dir" ] ; then
+        continue
+    fi
+
+    greatest_version="$(
+        cd "$dir"
+        for dir2 in * ; do
+            if [ '!' -d "$dir2" ] ; then
+                continue
+            fi
+            echo "$dir2"
+        done | sort -n | tail -n 1
+    )"
+
+    if [ -n "$greatest_version" ] ; then
+        push_install "$dir/$greatest_version"
+    fi
+done
+
+export EDITOR='vim'
+export PYTHONSTARTUP="$HOME/.pythonrc.py"
+
+fi #!__environment_guard
+
