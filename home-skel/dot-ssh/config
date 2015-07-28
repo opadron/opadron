@@ -23,3 +23,8 @@ Hostname gitlab.kitware.com
 IdentityFile ~/.ssh/kitware-gitlab
 User git
 
+Host bitbucket www.bitbucket.org
+Hostname www.bitbucket.org
+IdentityFile ~/.ssh/bitbucket
+User git
+
