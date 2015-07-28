@@ -41,13 +41,17 @@ if check_exit_code _ which gpg-agent ; then
                   --write-env-file "$GPG_AGENT_DIR/$$" &> /dev/null
     fi
 
-    # by this point, we have an environment file to source
-    source "$env_file"
-    unset env_file
+    # by this point, we have an environment file to source, or another gpg-agent
+    # daemon is already running
+    if [ -f "$env_file" ] ; then
+        source "$env_file"
 
-    export GPG_AGENT_INFO
-    export SSH_AUTH_SOCK
-    export GPG_TTY="$( tty )"
+        export GPG_AGENT_INFO
+        export SSH_AUTH_SOCK
+        export GPG_TTY="$( tty )"
+    fi
+
+    unset env_file
 fi
 
 fi #!__gpg_agent_guard
