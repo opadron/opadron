@@ -7,7 +7,6 @@ sleep 1s
 
 term-dark  &
 term-light &
-google-chrome &
 
 xcompmgr -CcfF      \
          -r'0.010'  \
@@ -19,5 +18,5 @@ xsetroot -cursor_name left_ptr
 
 exec xmonad
 
-killall chrome &> /dev/null
+killall google-chrome &> /dev/null
 
