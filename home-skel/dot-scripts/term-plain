@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+E="TERM=xterm-256color"
+
+gnome-terminal                        \
+    --window-with-profile="dark-term" \
+    --command="env $E bash"
+

@@ -93,13 +93,17 @@ myKeys conf@
 
   ) = M.fromList $
   [
-    (   -- launch a terminal
+    (   -- launch a solarize dark terminal
       ( modm .|. shiftMask, xK_Return ),
-      spawn $ XMonad.terminal conf
+      spawn "term-dark"
 
-    ),( -- launch an alternate terminal
+    ),( -- launch a solarize light terminal
       ( modm .|. controlMask, xK_Return  ),
       spawn "term-light"
+
+    ),( -- launch a plain terminal
+      ( controlMask .|. shiftMask, xK_Return  ),
+      spawn "term-plain"
 
     ),( -- launch dmenu
       ( modm              , xK_p  ),
