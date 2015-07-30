@@ -28,3 +28,8 @@ Hostname www.bitbucket.org
 IdentityFile ~/.ssh/bitbucket
 User git
 
+Host orcrist orcrist.kitware.com
+Hostname orcrist.kitware.com
+IdentityFile ~/.ssh/orcrist
+User opadron
+
