@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [ "$( id -u )" '!=' 0 ] ; then
+    echo 'Must run this script with root priveledges' 1>&2
+    exit 1
+fi
+
+source /etc/lsb-release
+
+declare -A apt_sources
+apt_sources[google]="\
+url;\
+https://dl-ssl.google.com/linux/linux_signing_key.pub;\
+deb http://dl.google.com/linux/chrome/deb/ stable main;\
+deb http://dl.google.com/linux/talkplugin/deb/ stable main"
+
+apt_sources[dropbox]="\
+pgp;\
+pgp.mit.edu;\
+5044912E;\
+deb [arch=i386,amd64] http://linux.dropbox.com/ubuntu $DISTRIB_CODENAME main"
+
+apt_sources[webupd8team]="\
+ppa;\
+webupd8team/java"
+
+for source_name in "${!apt_sources[@]}" ; do
+    (
+        source_entry="${apt_sources[$source_name]}"
+        IFS=';'
+        arr=($source_entry)
+
+        source_type="${arr[0]}"
+
+        case "$source_type" in
+            url)
+            url="${arr[1]}"
+            n="${#arr[@]}"
+
+            wget -q -O - "$url" | apt-key add -
+            for ((i=2; i<n; ++i)) ; do
+                echo "${arr[$i]}"
+            done > "/etc/apt/sources.list.d/$source_name.list"
+
+         ;; pgp)
+            key_server="${arr[1]}"
+            key_code="${arr[2]}"
+            n="${#arr[@]}"
+
+            apt-key adv --keyserver "$key_server" --recv-keys "$key_code"
+            for ((i=3; i<n; ++i)) ; do
+                echo "${arr[$i]}"
+            done > "/etc/apt/sources.list.d/$source_name.list"
+
+         ;; ppa)
+            repository="${arr[1]}"
+            add-apt-repository -y "ppa:$repository"
+
+         ;; *)
+            echo "unrecognized source type: $source_type" 1>&2
+            exit 1
+         ;;
+        esac
+    )
+done
+
+apt-get -qyy update
+apt-get install -qyy dctrl-tools unattended-upgrades
+
+sync-available
+
+aptitude keep-all
+dpkg --clear-selections
+
+cat "$( dirname "$0" )/ubuntu-package-list" |
+xargs aptitude --schedule-only install
+aptitude --schedule-only full-upgrade
+
+(
+    echo 'oracle-java8-installer'              \
+         'shared/accepted-oracle-license-v1-1' \
+         'select true'
+) | debconf-set-selections
+
+export DEBIAN_FRONTEND=noninteractive
+
+aptitude -q -y install
+aptitude -q -y full-upgrade
+unattended-upgrade
+apt-get -qyy --purge autoremove
+
+apt-file update
+apt-cache gencaches
+
