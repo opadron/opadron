@@ -33,3 +33,8 @@ Hostname orcrist.kitware.com
 IdentityFile ~/.ssh/orcrist
 User opadron
 
+Host magicbane magicbane.kitware.com
+Hostname magicbane.kitware.com
+IdentityFile ~/.ssh/magicbane
+User opadron
+
