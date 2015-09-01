@@ -1,0 +1,7 @@
+#! /usr/bin/env bash
+
+source "$HOME/.xinit/common/xinit-head.bash"
+export SELECTIONS="$*"
+source "$HOME/.x/auto.bash"
+source "$HOME/.xinit/common/post-display.bash"
+
