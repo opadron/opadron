@@ -1,6 +1,4 @@
 #! /usr/bin/env bash
 
-source "$HOME/.xinit/common/xinit-head.bash"
-source "$HOME/.x/kw-desk.bash"
-source "$HOME/.xinit/common/post-display.bash"
+"$HOME/.xinit/auto" 2 0
 
