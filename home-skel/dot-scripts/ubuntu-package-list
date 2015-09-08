@@ -14,6 +14,7 @@ bash
 bash-completion
 bc
 binutils
+bison
 build-essential
 bzip2
 checkinstall
@@ -34,6 +35,7 @@ elinks
 eog
 fakeroot
 feh
+flex
 ftp
 fuse
 g++
@@ -63,6 +65,8 @@ keepass2
 less
 libblas-dev
 liblapack-dev
+libncurses5-dev
+libncursesw5-dev
 links
 lintian
 lshw
@@ -73,6 +77,7 @@ mesa-utils
 mount
 myspell-en-us
 nano
+nethack-console
 network-manager
 ntfs-3g
 ntpdate
@@ -92,6 +97,7 @@ pinentry-curses
 pkg-config
 pulseaudio
 python
+python-pip
 python2.7-dev
 python3-dev
 r-base
@@ -119,7 +125,9 @@ tk-dev
 tmux
 tzdata
 unzip
+vagrant
 vim-nox
+virtualbox
 vlc
 wakeonlan
 weechat
