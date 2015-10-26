@@ -38,3 +38,8 @@ Hostname magicbane.kitware.com
 IdentityFile ~/.ssh/magicbane
 User opadron
 
+Host aego www.github.com
+Hostname www.github.com
+IdentityFile ~/.ssh/aego
+User git
+
