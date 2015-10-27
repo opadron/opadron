@@ -25,6 +25,7 @@ coreutils
 cpio
 cpp
 cracklib-runtime
+cscope
 curl
 dmsetup
 docker.io
@@ -33,6 +34,7 @@ efibootmgr
 eject
 elinks
 eog
+evince
 fakeroot
 feh
 flex
@@ -139,7 +141,6 @@ wireless-tools
 wodim
 wpasupplicant
 xclip
-xcompmgr
 xdotool
 xinit
 xmobar
