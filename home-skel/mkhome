@@ -52,7 +52,7 @@ for path in * ; do
         touch "$enc_dst"
         chmod "$perms" "$enc_dst"
 
-        gpg -q --decrypt "$enc_src" >> "$enc_dst" && rm "$enc_src"
+        gpg -q --use-agent --decrypt "$enc_src" >> "$enc_dst" && rm "$enc_src"
     done
 done
 
