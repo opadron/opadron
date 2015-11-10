@@ -1,0 +1,40 @@
+#! /usr/bin/env bash
+
+if [ -z "$__solarize_guard" ] ; then __solarize_guard=1
+source "$HOME/.bash-lib/init"
+
+dark() {
+    eval "$( dircolors ~/.solarize-dircolors )"
+    export VIMCOLORSCHEME=solarized
+    export VIMCOLORBACKGROUND=dark
+    export TERM_SCHEME=dark
+}
+
+light() {
+    eval "$( dircolors ~/.solarize-dircolors )"
+    export VIMCOLORSCHEME=solarized
+    export VIMCOLORBACKGROUND=light
+    export TERM_SCHEME=light
+}
+
+plain() {
+    eval "$( dircolors ~/.dircolors )"
+    export VIMCOLORSCHEME=""
+    export VIMCOLORBACKGROUND=""
+    unset VIMCOLORSCHEME
+    unset VIMCOLORBACKGROUND
+    export TERM_SCHEME=plain
+}
+
+if [ -n "$TERM_SCHEME" ] ; then
+    if [ "$TERM_SCHEME" '=' 'dark' ] ; then
+        dark
+    elif [ "$TERM_SCHEME" '=' 'light' ] ; then
+        light
+    elif [ "$TERM_SCHEME" '=' 'plain' ] ; then
+        plain
+    fi
+fi
+
+fi #!__solarize_guard
+

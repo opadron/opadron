@@ -15,6 +15,7 @@ mload introspection
 mload local_rc_file
 mload prompt
 mload tab_complete
+mload solarize
 
 fi # !__bashrc_guard
 

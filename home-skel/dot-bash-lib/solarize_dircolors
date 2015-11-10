@@ -1,9 +1,0 @@
-#! /usr/bin/env bash
-
-if [ -z "$__solarize_dircolors_guard" ] ; then __solarize_dircolors_guard=1
-source "$HOME/.bash-lib/init"
-
-eval "$( dircolors ~/.solarize-dircolors )"
-
-fi #!__prompt_guard
-
