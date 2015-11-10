@@ -8,6 +8,8 @@ set termencoding=utf-8
 filetype plugin on
 
 set nocompatible
+set cpoptions+=v
+set backspace=0
 set autoindent
 set smartindent
 set modeline
@@ -30,7 +32,9 @@ set tags=./tags;/
 set listchars=tab:╬═,trail:¶,extends:»,precedes:«,nbsp:□
 set list
 set laststatus=2
-
+set lazyredraw
+set ttyfast
+set re=0
 
 " undofile
 " persistent-undo
