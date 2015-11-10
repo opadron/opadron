@@ -1,0 +1,47 @@
+
+snippet :snip "Snippet" !b
+`!p snip.rv = "snippet :"`$1 "$2" !b
+$3
+`!p snip.rv = "endsnippet"`
+endsnippet
+
+snippet :# "Shebang Line" !b
+#! /usr/bin/env $1
+endsnippet
+
+snippet :iguard "C/C++ Include Guard" !b
+#ifndef __$1_H
+#define __$1_H
+
+$2
+
+#endif /* !__$1_H */
+endsnippet
+
+global !p
+def get_arg_type(arg):
+    from re import split
+    return arg[:-len(split(r"[&\*\s]", arg)[-1])].strip()
+
+def get_prototype_args(arg_string):
+    return (", ".join(get_arg_type(x) for x in arg_string.split(","))
+            if arg_string.strip() else "void")
+
+INTERN_SET = set(["static", "inline", "intern", "private"])
+
+def get_prototype_head(s):
+    q = s.split()
+    new_q = [x for x in q if x.lower() not in INTERN_SET]
+    if len(new_q) == len(q):
+        new_q.insert(0, "extern")
+    return " ".join(new_q)
+endglobal
+
+snippet :cfun "C/C++ Function with Prototype" !b
+$1($2) {
+    $3
+}
+
+`!p snip.rv = "%s(%s);" % (get_prototype_head(t[1]), get_prototype_args(t[2]))`
+endsnippet
+

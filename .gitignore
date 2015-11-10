@@ -1,0 +1,8 @@
+*.py[cod]
+node_modules
+.coverage*
+.DS_Store
+.*.swp
+.*.swo
+.vagrant
+.idea/
