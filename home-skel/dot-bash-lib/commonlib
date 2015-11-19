@@ -11,14 +11,109 @@ function envget() {
 }
 
 function envset() {
-    while [ -n "$*" ] ; do
-        local key="$1" ; shift
-        local value="$1" ; shift
+    args=("$@")
+    for ((i=0; i<${#args[@]}; i+=2)) ; do
+        local key="${args[$i]}"
+        local value="${args[$((i + 1))]}"
+        eval "$key="'"'"$value"'"'
+    done
+}
 
-        if [ -z "$value" ] ; then
-            unset $key
-        else
-            eval "$key="'"'"$value"'"'
+function __env_check_internal() {
+    mode="$1"
+    invert="$2"
+    var="$3"
+
+    result=1
+    if [ "$mode" '=' 'SET' ] ; then
+        if eval '[ -n "${'"$var"'+set}" ]' ; then
+            result=0
+        fi
+    elif [ "$mode" '=' 'EMPTY' ] ; then
+        val="$( envget "$var" )"
+        if [ -z "$val" ] ; then
+            result=0
+        fi
+    elif [ "$mode" '=' 'ZERO' ] ; then
+        val="$( envget "$var" )"
+        if [ "$(( val == 0 ))" '==' '1' -a -n "$val" ] ; then
+            result=0
+        fi
+    elif [ "$mode" '=' 'TRUE' ] ; then
+        val="$( envget "$var" )"
+        if [ "$(( val == 0 ))" '!=' '1' ] ; then
+            result=0
+        fi
+    fi
+
+    if [ "$invert" '=' '1' ] ; then
+        result=$(( 1 - result ))
+    fi
+
+    echo "$result"
+}
+
+function env_check() {
+    mode="$1" ; shift
+
+    if [ "$mode" '!=' 'SET' -a \
+         "$mode" '!=' 'UNSET' -a \
+         "$mode" '!=' 'EMPTY' -a \
+         "$mode" '!=' 'NONEMPTY' -a \
+         "$mode" '!=' 'ZERO' -a \
+         "$mode" '!=' 'NONZERO' -a \
+         "$mode" '!=' 'TRUE' -a \
+         "$mode" '!=' 'FALSE' ] ; then
+        first_arg="$mode"
+        mode="NONEMPTY"
+    fi
+
+    invert=0
+    if [ "$mode" '=' 'UNSET' -o \
+         "$mode" '=' 'NONEMPTY' -o \
+         "$mode" '=' 'NONZERO' -o \
+         "$mode" '=' 'FALSE' ] ; then
+        invert=1
+    fi
+
+    if [ "$invert" '=' '1' ] ; then
+        if [ "$mode" '=' 'UNSET' ] ; then
+            mode="SET"
+        elif [ "$mode" '=' 'NONEMPTY' ] ; then
+            mode="EMPTY"
+        elif [ "$mode" '=' 'NONZERO' ] ; then
+            mode="ZERO"
+        elif [ "$mode" '=' 'FALSE' ] ; then
+            mode="TRUE"
+        fi
+    fi
+
+    result=0
+    if [ -n "$first_arg" ] ; then
+        result="$( __env_check_internal "$mode" "$invert" "$first_arg" )"
+        unset first_arg
+    fi
+
+    while [ "$#" '!=' '0' ] ; do
+        if [ "$result" '=' '1' ] ; then
+            break
+        fi
+
+        var="$1" ; shift
+        result="$( __env_check_internal "$mode" "$invert" "$var" )"
+    done
+
+    return $result
+}
+
+function env_checkset() {
+    args=("$@")
+    for ((i=0; i<${#args[@]}; i+=2)) ; do
+        local var="${args[$i]}"
+        local value="${args[$((i + 1))]}"
+
+        if env_check UNSET "$var" ; then
+            envset "$var" "$value"
         fi
     done
 }
@@ -34,38 +129,6 @@ function check_exit_code() {
     "
 
     return $result_code
-}
-
-function all() {
-    local result=0
-
-    while [ -n "$*" ] ; do
-        local var="$1" ; shift
-        local val="$( envget "$var" )"
-
-        if [ "$(( val == 0 ))" '=' '1' -o -z "$val" ] ; then
-            result=1
-            break
-        fi
-    done
-
-    return $result
-}
-
-function any() {
-    local result=1
-
-    while [ -n "$*" ] ; do
-        local var="$1" ; shift
-        local val="$( envget "$var" )"
-
-        if [ "$(( val == 0 ))" '!=' '1' -a -n "$val" ] ; then
-            result=0
-            break
-        fi
-    done
-
-    return $result
 }
 
 function check_output() {
@@ -102,11 +165,13 @@ function envappend() {
 
     local var="$1" ; shift
     local val="$1" ; shift
-    while [ -n "$*" ] ; do
-        val="$val$sep$1" ; shift
+
+    args=("$@")
+    for ((i=0; i<${#args[@]}; ++i)) ; do
+        val="$val$sep${args[$i]}"
     done
 
-    if [ -z "$( envget "$var" )" ] ; then
+    if env_check EMPTY "$var" ; then
         envset "$var" "$val"
     else
         envset "$var" "$( envget "$var" )$sep$val"
@@ -123,11 +188,13 @@ function envpush() {
 
     local var="$1" ; shift
     local val="$1" ; shift
-    while [ -n "$*" ] ; do
-        val="$val$sep$1" ; shift
+
+    args=("$@")
+    for ((i=0; i<${#args[@]}; ++i)) ; do
+        val="${args[$i]}$sep$val"
     done
 
-    if [ -z "$( envget "$var" )" ] ; then
+    if env_check EMPTY "$var" ; then
         envset "$var" "$val"
     else
         envset "$var" "$val$sep$( envget "$var" )"
@@ -190,8 +257,10 @@ function platform() {
 
 function push_path() {
     local path_var="$1" ; shift
-    while [ -n "$*" ] ; do
-        dir="$1" ; shift
+
+    args=("$@")
+    for ((i=0; i<${#args[@]}; ++i)) ; do
+        dir="${args[$i]}"
         if [ -d "$dir" ] ; then
             envpush $path_var "$dir"
         fi
@@ -199,8 +268,9 @@ function push_path() {
 }
 
 function push_install() {
-    while [ -n "$*" ] ; do
-        dir="$( realpath "$1" )" ; shift
+    args=("$@")
+    for ((i=0; i<${#args[@]}; ++i)) ; do
+        dir="$( realpath "${args[$i]}" )"
 
         push_path PATH               "$dir/bin"
         push_path PATH               "$dir/sbin"
@@ -226,8 +296,9 @@ function push_install() {
 }
 
 function ppid() {
-    while [ -n "$*" ] ; do
-        local pid="$1" ; shift
+    args=("$@")
+    for ((i=0; i<${#args[@]}; ++i)) ; do
+        local pid="${args[$i]}"
         if [ -z "$pid" ] ; then
             pid="$$"
         fi

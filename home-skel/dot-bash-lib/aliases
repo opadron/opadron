@@ -6,7 +6,7 @@ source "$HOME/.bash-lib/init"
 mload commonlib
 mload introspection
 
-if any INTROSPECT_LS_COLOR_SUPPORT ; then
+if env_check TRUE INTROSPECT_LS_COLOR_SUPPORT ; then
     alias ls="ls -F --color=auto"
 else
     alias ls="ls -GF"
