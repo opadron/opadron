@@ -5,6 +5,7 @@ space for my personal dot files, config files, random files...
 
 Packages to install with this config:
  - c compiler
+ - ctags
  - python
  - xmonad
  - gnome-terminal
