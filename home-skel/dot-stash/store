@@ -1,0 +1,14 @@
+#! /usr/bin/env bash
+
+while [ "$#" '!=' '0' ] ; do
+    file="$1" ; shift
+    file_hash="$( shasum "$file" | cut -d\  -f 1)"
+
+    mkdir -p "${file_hash::2}/${file_hash:2:2}"
+    gpg --encrypt --armor --sign -r omarpadronmail@gmail.com \
+        < "$file"                                            \
+        > "${file_hash::2}/${file_hash:2:2}/${file_hash:4}"
+
+    echo "$file                          :$file_hash"
+done
+
