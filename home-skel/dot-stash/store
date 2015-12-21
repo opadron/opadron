@@ -4,7 +4,7 @@ while [ "$#" '!=' '0' ] ; do
     file="$1" ; shift
     file_hash="$( shasum "$file" | cut -d\  -f 1)"
 
-    bucket="${file_hash::2}/${file_hash:2:2}"
+    bucket="buckets/${file_hash::2}/${file_hash:2:2}"
     destination="$bucket/${file_hash:4}"
 
     mkdir -p "$bucket"
