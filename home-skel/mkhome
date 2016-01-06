@@ -6,8 +6,10 @@ source "$( dirname "$0" )/dot-bash-lib/introspection" &> /dev/null
 src="$( realpath "$( dirname "$( realpath "$0" )" )" )"
 dst="$1"
 if [ -z "$dst" ] ; then
-    dst="$HOME"
+    dst="."
 fi
+
+dst="$( realpath "$dst" )"
 
 if [ "$src" '=' "$dst" ] ; then
     echo "error: cannot run $0 from within its own directory" 1>&2
@@ -21,7 +23,14 @@ exclusion_list=(
 )
 
 cd "$src"
-for path in * ; do
+path_list=( * )
+path_index=0
+while [ "$path_index" -lt "${#path_list[@]}" ] ; do
+    entry="${path_list[$path_index]}"
+    path="${entry/:*/}"
+    mangled_path="${entry/*:/}"
+    path_index="$(( path_index + 1 ))"
+
     is_excluded=0
     for ((i=0; i<${#exclusion_list[@]}; ++i)) ; do
         if [ "$path" '=' "${exclusion_list[i]}" ] ; then
@@ -32,33 +41,85 @@ for path in * ; do
 
     if [ "$is_excluded" '=' '1' ] ; then continue ; fi
 
-    tmp_dst="$dst/$path"
-    if [ "${path:0:4}" '=' 'dot-' ] ; then
-        tmp_dst="$dst/.${path:4}"
+    do_link=0
+    do_desc=0
+    do_decrypt=0
+    do_copy=1
+
+    parent_path="$( dirname "$path" )"
+    base_path="$( basename "$path" )"
+
+    mangled_parent_path="$( dirname "$mangled_path" )"
+
+    while true ; do
+        if [ "${base_path:0:4}" '=' 'dot-' ] ; then
+            base_path=".${base_path:4}"
+        elif [ "${base_path:0:5}" '=' 'link-' ] ; then
+            do_link=1
+            do_copy=0
+            base_path="${base_path:5}"
+        elif [ "${base_path:0:5}" '=' 'desc-' ] ; then
+            if [ -d "${path}" ] ; then
+                do_desc=1
+                do_copy=0
+                base_path="${base_path:5}"
+            fi
+        elif [ "${base_path:${#base_path}-4}" '=' '.asc' ] ; then
+            if [ -f "${path}" ] ; then
+                do_decrypt=1
+                do_copy=0
+                base_path="${base_path::-4}"
+            fi
+        else
+            break
+        fi
+    done
+
+    mangled_mid_ancestor_path="$base_path"
+    if [ "$mangled_path" '!=' "$path" ] ; then
+        mangled_mid_ancestor_path="$mangled_parent_path/$base_path"
     fi
 
-    rm -rf "$tmp_dst"
-    cp -r "$path" "$tmp_dst"
-    chmod -R g-w "$tmp_dst"
+    tmp_dst="$dst/$mangled_mid_ancestor_path"
 
-    # look for encrypted files
-    find "$tmp_dst" -type f -iname '*.asc' | while read enc_src ; do
-        n="${#enc_src}"
-        n="$(( n - 4 ))"
-        enc_dst="${enc_src:0:$n}"
+    if [ "$do_desc" '=' '1' ] ; then
+        do_link=0
 
+        rm -rf "$tmp_dst"
+        mkdir -p "$tmp_dst"
+        for new_path in "$path"/* ; do
+            new_base="$( basename "$new_path" )"
+            n="${#path_list[@]}"
+            path_list[n]="$new_path:$mangled_mid_ancestor_path/$new_base"
+        done
+    fi
+
+    if [ "$do_decrypt" '=' '1' ] ; then
+        do_link=0
+
+        rm -rf "$tmp_dst"
         perms=600
-        if [ -x "$enc_src" ] ; then perms=700 ; fi
-        touch "$enc_dst"
-        chmod "$perms" "$enc_dst"
+        if [ -x "$path" ] ; then perms=700 ; fi
+        touch "$tmp_dst"
+        chmod "$perms" "$tmp_dst"
+        gpg -q --use-agent --decrypt "$path" >> "$tmp_dst"
+    fi
 
-        gpg -q --use-agent --decrypt "$enc_src" >> "$enc_dst" && rm "$enc_src"
-    done
+    if [ "$do_link" '=' '1' ] ; then
+        rm -rf "$tmp_dst"
+        ln -s "$( realpath "$path" )" "$tmp_dst"
+    fi
+
+    if [ "$do_copy" '=' '1' ] ; then
+        rm -rf "$tmp'=' '1' _dst"
+        cp -r "$path" "$tmp_dst"
+        chmod -R g-w "$tmp_dst"
+    fi
 done
 
 # generate symlinks to ssh keys
 (
-    cd ~/.ssh
+    cd "$dst/.ssh"
     for pub_key in keys/*.pub ; do
         n="${#pub_key}"
         n="$(( n - 4 ))"

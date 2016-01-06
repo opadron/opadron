@@ -1,0 +1,23 @@
+
+snippet <link> "link element" !b
+<link rel="$1" href="$2">
+endsnippet
+
+snippet <script> "script element" !b
+<script src="$1"></script>
+endsnippet
+
+snippet <img> "img element" !b
+<img src="$1" alt="$2" style="width:${3:128px};height:${4:128px}">
+endsnippet
+
+# snippet <input> "input element" !b
+# endsnippet
+
+# snippet <table> "table element" !b
+# endsnippet
+
+snippet < "generic dom element" !b
+<${1:div}$2>$3</${1/(\w+).*/$1/g}>
+endsnippet
+

@@ -150,6 +150,9 @@ execute "autocmd VimEnter,Colorscheme * :hi IndentGuidesEven " .
 autocmd FileType python setlocal completeopt-=preview
 autocmd FileType python setlocal omnifunc=
 
+autocmd FileType html setlocal tabstop=2
+autocmd FileType html setlocal shiftwidth=2
+
 " super tab
 let g:SuperTabSetDefaultCompletionType="context"
 let g:SuperTabLongestEnhanced=1

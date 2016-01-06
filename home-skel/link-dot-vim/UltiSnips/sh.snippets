@@ -1,0 +1,24 @@
+
+snippet :if "regular branch" !b
+if [ $1 ] ; then
+    $2
+fi
+endsnippet
+
+snippet :elif "extended branch" !b
+elif [ $1 ] ; then
+    $2
+endsnippet
+
+snippet :for "for loop" !b
+for $1 ; do
+    $2
+done
+endsnippet
+
+snippet :while "while loop" !b
+while [ $1 ] ; do
+    $2
+done
+endsnippet
+

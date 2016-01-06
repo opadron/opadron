@@ -7,3 +7,5 @@
 hist = log --graph --decorate --oneline
 history = log --graph --decorate --oneline --simplify-by-decoration
 log1 = log --oneline
+[color]
+	status = always
