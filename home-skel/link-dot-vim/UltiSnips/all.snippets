@@ -1,21 +1,111 @@
 
-snippet :snip "Snippet" !b
-`!p snip.rv = "snippet :"`$1 "$2" !b
-$3
+# snippet for creating new snippets ############################################
+snippet SNIP "snippet" !b
+`!p snip.rv = "snippet "`${1:<PATTERN>} "${2:<DESCRIPTION>}" !b
+${3:<TEMPLATE>}
 `!p snip.rv = "endsnippet"`
 endsnippet
 
-snippet :# "Shebang Line" !b
-#! /usr/bin/env $1
+# shell snippets ###############################################################
+snippet #! "shebang Line" !b
+#! /usr/bin/env ${1:<INTERPRETER>}
 endsnippet
 
-snippet :iguard "C/C++ Include Guard" !b
-#ifndef __$1_H
-#define __$1_H
+snippet FISH "shell branch" !b
+if [ ${1:<CONDITION>} ] ; then
+    ${2:<CODE>}
+fi
+endsnippet
 
-$2
+snippet SHELF "shell extended branch" !b
+elif [ ${1:<CONDITION>} ] ; then
+    ${2:<CODE>}
+endsnippet
 
-#endif /* !__$1_H */
+snippet SHOR "shell for loop" !b
+for ${1:<LOOP CLAUSE>} ; do
+    ${2:<CODE>}
+done
+endsnippet
+
+snippet WISH "shell while loop" !b
+while [ ${1:<CONDITION>} ] ; do
+    ${2:<CODE>}
+done
+endsnippet
+
+snippet DOSH "shell do loop" !b
+while true ; do
+    ${2:<CODE>}
+    if [ ${1:<CONDITION>} ] ; then break ; done
+done
+endsnippet
+
+snippet SWISH "shell switch statement" !b
+case ${1:<EXPRESSION>} in
+  ${2:<CODE>}
+esac
+endsnippet
+
+snippet CASH "shell case statement" !b
+${1:<PATTERN>})
+  ${2:<CODE>}
+  ;;
+endsnippet
+
+snippet SHUN "shell function" !b
+function ${1:<NAME>}() {
+    ${2:<CODE>}
+}
+endsnippet
+
+# C-style snippets #############################################################
+
+snippet IF "C-style branch" !b
+if(${1:<CONDITION>}) {
+    ${2:<CODE>}
+}
+endsnippet
+
+snippet ELSE "C-style extended branch" !b
+} else if(${1:<CONDITION>}) {
+    ${2:<CODE>}
+}
+endsnippet
+
+snippet FOR "C-style for loop" !b
+for(${1:<INITIALIZATION>}; ${2:<CONDITION>}; ${3:POSTLOOP}) {
+    ${4:<CODE>}
+}
+endsnippet
+
+snippet WHILE "C-style while loop" !b
+while(${1:<CONDITION>}) {
+    ${2:<CODE>}
+}
+endsnippet
+
+snippet DO "C-style do loop" !b
+do {
+    ${2:<CODE>}
+} while(${1:<CONDITION>});
+endsnippet
+
+snippet SWITCH "C-style switch statement" !b
+switch(${1:<EXPRESSION>}) {
+  ${2:<CASES>}
+}
+endsnippet
+
+snippet CASE "C-style case statement" !b
+case ${1:<VALUE>}:
+  ${2:<CODE>}
+break;
+endsnippet
+
+snippet DEFAULT "C-style default case statement" !b
+default:
+  ${1:<CODE>}
 endsnippet
 
 global !p
@@ -37,11 +127,86 @@ def get_prototype_head(s):
     return " ".join(new_q)
 endglobal
 
-snippet :cfun "C/C++ Function with Prototype" !b
-$1($2) {
-    $3
+snippet FUNCTION "C-style function with prototype" !b
+${1:<HEADER>}(${2:<ARGUMENTS>}) {
+    ${3:<CODE>}
 }
 
 `!p snip.rv = "%s(%s);" % (get_prototype_head(t[1]), get_prototype_args(t[2]))`
+endsnippet
+
+snippet IGUARD "C-style multiple inclusion guard" !b
+#ifndef __${1:<HEADER NAME>}_H
+#define __${1}_H
+
+${2:<CODE>}
+
+#endif /* !__${1}_H */
+endsnippet
+
+# html snippets ################################################################
+snippet <link> "link element" !b
+<link rel="${1:stylesheet}" href="${2:<URI>}">
+endsnippet
+
+snippet <script> "script element" !b
+<script src="${1:<URI>}"></script>
+endsnippet
+
+snippet <img> "img element" !b
+<img src="${1:<URI>}" alt="${2:<ALTERNATIVE>}" style="width:${3:128px};height:${4:128px}">
+endsnippet
+
+snippet < "generic dom element" !b
+<${1:div}${2:<ATTRIBUTES>}>${3:<CHILDREN>}</${1/(\w+).*/$1/g}>
+endsnippet
+
+# generic snippets #############################################################
+
+global !p
+def format_comment_break(comment):
+    LINE_WIDTH=80
+    tok = comment.split(" ")
+    pre, tok = tok[0], " ".join(tok[1:])
+
+    filler = (
+             "-" if pre == "/*"
+        else "/" if pre == "//"
+        else "#" if pre == "#"
+        else "-" if pre == "<!--"
+        else "#"
+    )
+
+    post = (
+             " */" if pre == "/*"
+        else "/"   if pre == "//"
+        else "#"   if pre == "#"
+        else "-->" if pre == "<!--"
+        else "#"
+    )
+
+    pre_length = len(pre)
+    post_length = len(post)
+
+    if pre_length: pre_length += 1
+
+    num_filler = LINE_WIDTH - pre_length - post_length - len(tok)
+    if num_filler < 0:
+        tok = tok[:num_filler]
+        num_filler = 0
+
+    result = []
+    if post_length:
+        result.extend([num_filler*filler, post])
+
+    return "".join(result)
+endglobal
+
+snippet BREAK "comment page break" !b
+${1:<COMMENT>}`!p snip.rv = format_comment_break(t[1])`
+endsnippet
+
+snippet "(.*)((NOTE)|(IMPORTANT)|(TODO)|(BUG)|(XXX))" "important entry" r!b
+`!p snip.rv = match.group(1) + match.group(2)`(${1:`echo $USER`}): ${2:<MESSAGE>}
 endsnippet
 
