@@ -29,7 +29,7 @@ set foldmethod=syntax
 set wildmode=longest,list
 set textwidth=80
 set tags=./tags;/
-set listchars=tab:╬═,trail:¶,extends:»,precedes:«,nbsp:□
+set listchars=tab:╬═,trail:¶,extends:»,precedes:«,nbsp:¶
 set list
 set laststatus=2
 set lazyredraw
@@ -180,9 +180,6 @@ let g:airline_inactive_collapse=1
 let g:airline_exclude_preview=1
 
 let g:AutoPairsFlyMode=1
-
-
-
 
 "# KEY REMAPPINGS #############################################################"
 
