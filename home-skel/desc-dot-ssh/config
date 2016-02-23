@@ -43,3 +43,23 @@ Hostname www.github.com
 IdentityFile ~/.ssh/aego
 User git
 
+Host sumo www.osumo.org
+Hostname www.osumo.org
+IdentityFile ~/.ssh/sumo
+User opadron
+
+Host sumo www.osumo.org
+Hostname www.osumo.org
+IdentityFile ~/.ssh/sumo
+User opadron
+
+Host sumo www.osumo.org
+Hostname www.osumo.org
+IdentityFile ~/.ssh/sumo
+User opadron
+
+Host sumo www.osumo.org
+Hostname www.osumo.org
+IdentityFile ~/.ssh/sumo
+User opadron
+

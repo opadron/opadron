@@ -92,23 +92,25 @@ if [ -n "$repo" ] ; then
     done
     repo="$( readlink -e "$repo" )"
 
-    cp "$HOME/.ssh/config" "$repo/home-skel/dot-ssh"
-    cp "$HOME/.ssh/authorized_keys" "$repo/home-skel/dot-ssh"
-    cp "$HOME/.ssh/known_hosts" "$repo/home-skel/dot-ssh"
+    cp "$HOME/.ssh/config" "$repo/home-skel/desc-dot-ssh"
+    cp "$HOME/.ssh/authorized_keys" "$repo/home-skel/desc-dot-ssh"
+    cp "$HOME/.ssh/known_hosts" "$repo/home-skel/desc-dot-ssh"
 
     gpg --encrypt --sign --armor -r omarpadronmail \
         "$HOME/.ssh/keys/$host_alias"
-    mv "$HOME/.ssh/keys/${host_alias}.asc" "$repo/home-skel/dot-ssh/keys"
-    cp "$HOME/.ssh/keys/${host_alias}.pub" "$repo/home-skel/dot-ssh/keys"
+    mv "$HOME/.ssh/keys/${host_alias}.asc" \
+        "$repo/home-skel/desc-dot-ssh/desc-keys"
+    cp "$HOME/.ssh/keys/${host_alias}.pub" \
+        "$repo/home-skel/desc-dot-ssh/desc-keys"
 
     (
         cd "$repo"
 
-        git add "home-skel/dot-ssh/config"                 \
-                "home-skel/dot-ssh/authorized_keys"        \
-                "home-skel/dot-ssh/known_hosts"            \
-                "home-skel/dot-ssh/keys/${host_alias}.asc" \
-                "home-skel/dot-ssh/keys/${host_alias}.pub"
+        git add "home-skel/desc-dot-ssh/config"                      \
+                "home-skel/desc-dot-ssh/authorized_keys"             \
+                "home-skel/desc-dot-ssh/known_hosts"                 \
+                "home-skel/desc-dot-ssh/desc-keys/${host_alias}.asc" \
+                "home-skel/desc-dot-ssh/desc-keys/${host_alias}.pub"
 
         git commit --edit -m "add ssh key: $host_alias"
     )
