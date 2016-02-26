@@ -5,6 +5,8 @@ source "$HOME/.bash-lib/init"
 
 mload commonlib
 mload colors
+mload term_sequences
+mload preexec
 
 function check_sum() {
     for com in md5 md5sum shasum ; do
@@ -19,10 +21,13 @@ __prompt_shell_level=
 __prompt_number_of_jobs=
 __prompt_git_branch=
 __prompt_git_remote_status=
-__prompt_is_root=
 
 __prompt_shell_level_flag=
-__prompt_is_root_flag=
+__prompt_right=
+
+function __compute_right_side_prompts() {
+    __prompt_right=()
+}
 
 function __prompt_update() {
     local x=
@@ -52,16 +57,6 @@ function __prompt_update() {
         sed -e 's/^.*\(behind\) \([0-9][0-9]*\).*$/-\2/g'
     )"
 
-    x=
-    if [ -n "$__prompt_git_remote_status" ] ; then
-        x="${x} "
-        x="${x}\[$TERM_COLORS_BOLD_YELLOW\]("
-        x="${x}\[$TERM_COLORS_YELLOW\]$__prompt_git_remote_status"
-        x="${x}\[$TERM_COLORS_BOLD_YELLOW\])"
-        x="${x}\[$TERM_COLORS_RESET\]"
-        __prompt_git_remote_status="$x"
-    fi
-
     __prompt_git_branch="$(
         git branch 2> /dev/null |
         sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'
@@ -76,62 +71,85 @@ function __prompt_update() {
         if $x 2> /dev/null | grep -q -v '^?? .*$'; then
             __prompt_git_branch="${__prompt_git_branch}*"
         fi
-
-        x=
-        x="${x}\[$TERM_COLORS_RESET\] "
-        x="${x}\[$TERM_COLORS_BOLD_RED\]("
-        x="${x}\[$TERM_COLORS_RED\]$__prompt_git_branch"
-        x="${x}\[$TERM_COLORS_BOLD_RED\])"
-        x="${x}\[$TERM_COLORS_RESET\]"
-
-        __prompt_git_branch="$x"
     fi
 
-    if [ -z "$__prompt_is_root_flag" ] ; then
-        x=
-        if [ "$USER" '=' 'root' ] ; then
-            x="${x}\[$( echo -e '\x1b[5;7;47m' )\]"
-            x="${x}\[$TERM_COLORS_BOLD_RED\]R"
-            x="${x}\[$TERM_COLORS_RESET\] "
+    __prompt_venv="$VIRTUAL_ENV"
+    if [ -n "$__prompt_venv" ] ; then
+        __prompt_venv="$( basename "$__prompt_venv" )"
+    fi
+
+
+    term_cursor_save
+    term_clear_to_end
+    term_cursor_down
+
+    date_fmt="+$TERM_COLORS_BLUE%a $TERM_COLORS_RESET%d"
+    date_fmt="${date_fmt}$TERM_COLORS_RESET"
+    echo -n "$( date "$date_fmt" )"
+
+    echo -n " $TERM_COLORS_CYAN$USER"
+    echo -n "$TERM_COLORS_BOLD_BLUE@"
+    echo -n "$TERM_COLORS_BLUE$( hostname )"
+    echo -n "$TERM_COLORS_RESET"
+
+    if [ "$( pwd )" '!=' "$HOME" ] ; then
+        echo -n " $TERM_COLORS_BOLD_GREEN["
+        echo -n "$TERM_COLORS_GREEN$( basename "$( pwd )" )"
+        echo -n "$TERM_COLORS_BOLD_GREEN]"
+        echo -n "$TERM_COLORS_RESET"
+    fi
+
+    if [ -n "$__prompt_git_branch" ] ; then
+        echo -n " $TERM_COLORS_BOLD_RED("
+        echo -n "$TERM_COLORS_RED$__prompt_git_branch"
+
+        if [ -n "$__prompt_git_remote_status" ] ; then
+            echo -n ": "
+            echo -n "$TERM_COLORS_YELLOW"
+            echo -n "${__prompt_git_remote_status::1}"
+            echo -n "$TERM_COLORS_BOLD_YELLOW"
+            echo -n "${__prompt_git_remote_status:1}"
         fi
 
-        __prompt_is_root="$x"
-        __prompt_is_root_flag=x
+        echo -n "$TERM_COLORS_BOLD_RED)"
+        echo -n "$TERM_COLORS_RESET"
     fi
 
-    PS1=
-    # date
-    # PS1="${PS1}\\[$TERM_COLORS_BLUE\\]\`date '+%m'\`"
-    # PS1="${PS1}\\[$TERM_COLORS_BOLD_BLUE\\]\`date '+%d'\`"
-    # PS1="${PS1}\\[$TERM_COLORS_RESET\\]"
+    if [ -n "$__prompt_venv" ] ; then
+        echo -n " $TERM_COLORS_BOLD_CYAN(\$"
+        echo -n "$TERM_COLORS_CYAN"
+        echo -n "$__prompt_venv"
+        echo -n "$TERM_COLORS_BOLD_CYAN)"
+        echo -n "$TERM_COLORS_RESET"
+    fi
 
-    # time
-    # PS1="${PS1}\\[$TERM_COLORS_CYAN\\]\`date '+%k'\`"
-    # PS1="${PS1}\\[$TERM_COLORS_BOLD_CYAN\\]\`date '+%M'\`"
-    # PS1="${PS1}\\[$TERM_COLORS_RESET\\]"
+    echo -n "$( term_cursor_last_line )$( pwd )"
+    term_cursor_restore
 
-    # machine status
-    # PS1="${PS1}`uname_at_host`"
-    # PS1="${PS1}\\[$TERM_COLORS_RESET\\] "
+    # PS1="${PS1}$__prompt_shell_level"
+    # PS1="${PS1}$__prompt_number_of_jobs"
 
-    PS1="${PS1}$__prompt_shell_level"
-    PS1="${PS1}$__prompt_number_of_jobs"
-    PS1="${PS1} "
-
-    PS1="${PS1}\\[$TERM_COLORS_BOLD_GREEN\\]["
-    PS1="${PS1}\\[$TERM_COLORS_GREEN\\]\\W"
-
-    PS1="${PS1}$__prompt_git_branch"
-    PS1="${PS1}$__prompt_git_remote_status"
-
-    PS1="${PS1}\\[$TERM_COLORS_BOLD_GREEN\\]]"
-
+    PS1=""
+    PS1="\\[$TERM_COLORS_BOLD_RED\\]"
+    PS1="${PS1}\\[$( echo -e '\xce' )\\]"
+    PS1="${PS1}$( echo -e '\x94' )"
     PS1="${PS1}\\[$TERM_COLORS_RESET\\] "
-    PS1="${PS1}$__prompt_is_root"
 
+    if [ "$USER" '=' 'root' ] ; then
+        PS1=""
+        PS1="${PS1}\\[$TERM_COLORS_RESET\\]"
+        PS1="${PS1}\\[$( echo -e '\x1b[1;7;31m' )\\]"
+        PS1="${PS1}\\[$( echo -e '\xc2' )\\]"
+        PS1="${PS1}$( echo -e '\xae' )"
+        PS1="${PS1}\\[$TERM_COLORS_RESET\\] "
+        PS1="${PS1}\\[$( echo -e '\x1b[1;5;7;31m' )\\]"
+        PS1="${PS1}\\[$TERM_COLORS_BOLD_RED\\]"
+    fi
 }
 
 export PROMPT_COMMAND=__prompt_update
+
+preexec() { echo -n "$TERM_COLORS_RESET" ; term_clear_to_end; }
 
 fi #!__prompt_guard
 

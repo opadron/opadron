@@ -1,0 +1,81 @@
+#! /usr/bin/env bash
+
+if [ -z "$__term_sequences_guard" ] ; then __term_sequences_guard=1
+source "$HOME/.bash-lib/init"
+
+function term_cursor_save {
+    tput sc
+}
+
+function term_cursor_restore {
+    tput rc
+}
+
+function term_get_width {
+    tput cols
+}
+
+function term_get_height {
+    tput lines
+}
+
+function term_home {
+    tput home
+}
+
+function term_cursor_place {
+    tput cup $1 $2
+}
+
+function term_cursor_down {
+    tput cud1
+}
+
+function term_cursor_up {
+    tput cuu1
+}
+
+function term_cursor_left {
+    n="$1" ; if [ -z "$n" ] ; then n=1 ; fi
+    tput cub $n
+}
+
+function term_cursor_right {
+    n="$1" ; if [ -z "$n" ] ; then n=1 ; fi
+    tput cuf $n
+}
+
+function term_cursor_last_line {
+    term_cursor_place $(( $( term_get_height ) - 1 )) 0
+}
+
+function term_cursor_invisible {
+    tput civis
+}
+
+function term_cursor_reset {
+    tput cnorm
+}
+
+function term_place_cursor {
+    tput $1 $2
+}
+
+function term_clear_right {
+    tput el
+}
+
+function term_clear_left {
+    tput el1
+}
+
+function term_clear_to_end {
+    tput ed
+}
+
+function term_clear_all {
+    tput ed
+}
+
+fi #!__term_sequences_guard
+

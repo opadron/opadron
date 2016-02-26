@@ -1,0 +1,18 @@
+#! /usr/bin/env bash
+
+if [ -z "$__preexec_guard" ] ; then __preexec_guard=1
+source "$HOME/.bash-lib/init"
+
+function preexec () { :; }
+function preexec_invoke_exec() {
+    if [ -n "$COMP_LINE" ] ; then return ; fi
+    if [ "$BASH_COMMAND" '=' "$PROMPT_COMMAND" ] ; then return ; fi
+    local this_command="$(
+        HISTTIMEFORMAT= history 1 | sed -e "s/^[ ]*[0-9]*[ ]*//" )";
+    preexec "$this_command"
+}
+
+trap "preexec_invoke_exec" DEBUG
+
+fi #!__preexec_guard
+
