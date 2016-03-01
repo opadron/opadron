@@ -78,52 +78,63 @@ function __prompt_update() {
         __prompt_venv="$( basename "$__prompt_venv" )"
     fi
 
-
-    term_cursor_save
-    term_clear_to_end
-    term_cursor_down
+    subprompt=""
+    botprompt=""
 
     date_fmt="+$TERM_COLORS_BLUE%a $TERM_COLORS_RESET%d"
     date_fmt="${date_fmt}$TERM_COLORS_RESET"
-    echo -n "$( date "$date_fmt" )"
+    subprompt="${subprompt}$( date "$date_fmt" )"
 
-    echo -n " $TERM_COLORS_CYAN$USER"
-    echo -n "$TERM_COLORS_BOLD_BLUE@"
-    echo -n "$TERM_COLORS_BLUE$( hostname )"
-    echo -n "$TERM_COLORS_RESET"
+    subprompt="${subprompt} $TERM_COLORS_CYAN$USER"
+    subprompt="${subprompt}$TERM_COLORS_BOLD_BLUE@"
+    subprompt="${subprompt}$TERM_COLORS_BLUE$( hostname )"
+    subprompt="${subprompt}$TERM_COLORS_RESET"
 
     if [ "$( pwd )" '!=' "$HOME" ] ; then
-        echo -n " $TERM_COLORS_BOLD_GREEN["
-        echo -n "$TERM_COLORS_GREEN$( basename "$( pwd )" )"
-        echo -n "$TERM_COLORS_BOLD_GREEN]"
-        echo -n "$TERM_COLORS_RESET"
+        subprompt="${subprompt} $TERM_COLORS_BOLD_GREEN["
+        subprompt="${subprompt}$TERM_COLORS_GREEN$( basename "$( pwd )" )"
+        subprompt="${subprompt}$TERM_COLORS_BOLD_GREEN]"
+        subprompt="${subprompt}$TERM_COLORS_RESET"
     fi
 
     if [ -n "$__prompt_git_branch" ] ; then
-        echo -n " $TERM_COLORS_BOLD_RED("
-        echo -n "$TERM_COLORS_RED$__prompt_git_branch"
+        subprompt="${subprompt} $TERM_COLORS_BOLD_RED("
+        subprompt="${subprompt}$TERM_COLORS_RED$__prompt_git_branch"
 
         if [ -n "$__prompt_git_remote_status" ] ; then
-            echo -n ": "
-            echo -n "$TERM_COLORS_YELLOW"
-            echo -n "${__prompt_git_remote_status::1}"
-            echo -n "$TERM_COLORS_BOLD_YELLOW"
-            echo -n "${__prompt_git_remote_status:1}"
+            subprompt="${subprompt}: "
+            subprompt="${subprompt}$TERM_COLORS_YELLOW"
+            subprompt="${subprompt}${__prompt_git_remote_status::1}"
+            subprompt="${subprompt}$TERM_COLORS_BOLD_YELLOW"
+            subprompt="${subprompt}${__prompt_git_remote_status:1}"
         fi
 
-        echo -n "$TERM_COLORS_BOLD_RED)"
-        echo -n "$TERM_COLORS_RESET"
+        subprompt="${subprompt}$TERM_COLORS_BOLD_RED)"
+        subprompt="${subprompt}$TERM_COLORS_RESET"
     fi
 
     if [ -n "$__prompt_venv" ] ; then
-        echo -n " $TERM_COLORS_BOLD_CYAN(\$"
-        echo -n "$TERM_COLORS_CYAN"
-        echo -n "$__prompt_venv"
-        echo -n "$TERM_COLORS_BOLD_CYAN)"
-        echo -n "$TERM_COLORS_RESET"
+        subprompt="${subprompt} $TERM_COLORS_BOLD_CYAN(\$"
+        subprompt="${subprompt}$TERM_COLORS_CYAN"
+        subprompt="${subprompt}$__prompt_venv"
+        subprompt="${subprompt}$TERM_COLORS_BOLD_CYAN)"
+        subprompt="${subprompt}$TERM_COLORS_RESET"
     fi
 
-    echo -n "$( term_cursor_last_line )$( pwd )"
+    botprompt="$( pwd )"
+
+
+    term_clear_to_end
+
+    term_cursor_save
+    term_cursor_last_line
+    term_clear_right
+    echo -n "$botprompt"
+    term_cursor_restore
+
+    term_cursor_save
+    term_cursor_down
+    echo -n "$subprompt"
     term_cursor_restore
 
     # PS1="${PS1}$__prompt_shell_level"
@@ -149,7 +160,10 @@ function __prompt_update() {
 
 export PROMPT_COMMAND=__prompt_update
 
-preexec() { echo -n "$TERM_COLORS_RESET" ; term_clear_to_end; }
+preexec() {
+    echo -n "$TERM_COLORS_RESET"
+    term_clear_to_end
+}
 
 fi #!__prompt_guard
 
