@@ -1,0 +1,17 @@
+#! /usr/bin/env bash
+
+export GIT_PAGER='less -+$LESS -RSX'
+
+while [ -d .git/rebase-merge -o -d .git/rebase-apply ] ; do
+    git log --oneline HEAD^..
+    git diff HEAD^ HEAD
+
+    echo -n "commit message: "
+    read message
+    if [ -n "$message" ] ; then
+        git commit --amend -m "$message"
+    fi
+
+    git rebase --continue
+done
+
