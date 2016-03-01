@@ -1,0 +1,119 @@
+#! /usr/bin/env python
+
+import os.path
+import re
+import sys
+
+import subprocess as sp
+
+RE_DUMB_COMMIT = re.compile(r"""([a-f0-9]+) (x|X)""")
+HUNK_STAGE_PAYLOAD = "\n".join((10*"s" + "yq "))
+
+def CC(*args, **kwargs):
+    sp.check_call(*args, **kwargs)
+
+def COMM(com, payload=None, *args, **kwargs):
+    if "stdin"  not in kwargs and payload: kwargs["stdin"] = sp.PIPE
+    if "stdout" not in kwargs            : kwargs["stdout"] = sp.PIPE
+
+    p_handle = sp.Popen(com, *args, **kwargs)
+    result = p_handle.communicate(payload)[0]
+    p_handle.wait()
+
+    if result is not None:
+        result = result.split("\n")
+
+    return result
+
+def add_hunks(file_path):
+    while True:
+        line = COMM(["git", "status", "-uall", "--porcelain", file_path])[0]
+        if not line or line[1] != "M": break
+        COMM(["git", "add", "-p", file_path], HUNK_STAGE_PAYLOAD)
+
+def main(tmp_dir):
+    tmp_location = os.path.join(tmp_dir, "_expand_tmp")
+    commit_list = []
+
+    for line in COMM(["git", "log", "--oneline"]):
+        match = RE_DUMB_COMMIT.match(line)
+        if match is None: break
+        hash, message = match.group(1, 2)
+        commit_list.append((hash, message))
+
+    if not commit_list:
+        sys.exit()
+
+
+    try:
+        CC(["git", "rev-parse", "rebase", "--"])
+
+        # fail if code above does not throw
+        print "rebase branch present" ; sys.stdout.flush()
+        sys.exit(1)
+    except sp.CalledProcessError:
+        pass
+
+    CC(["git", "checkout", "-b", "rebase"])
+    CC(["git", "reset", "--hard", "{}~1".format(commit_list[-1][0])])
+
+    for commit, message in reversed(commit_list):
+        new_list = []
+        mod_list = []
+        del_list = []
+        mov_list = []
+
+        CC(["git", "cherry-pick", "-n", commit])
+        for line in COMM(["git", "status", "-uall", "--porcelain"]):
+            if line.startswith("R "):
+                a, b = line[3:].split(" -> ")[:2]
+                if a[0] == '"' and a[-1] == '"': a = a[1:-1]
+                if b[0] == '"' and b[-1] == '"': b = b[1:-1]
+                mov_list.append((a, b))
+
+            if line.startswith("D "):
+                del_list.append(line[3:])
+
+        CC(["git", "reset", "HEAD"])
+
+        for a, b in mov_list:
+            CC(["git", "mv", a, b])
+            CC(["git", "commit", "-m", "{} REN {} -> {}".format(commit, a, b)])
+
+        for file_path in del_list:
+            CC(["git", "rm", file_path])
+            CC(["git", "commit", "-m", "{} DEL {}".format(commit, file_path)])
+
+        for line in COMM(["git", "status", "-uall", "--porcelain"]):
+            if not line.startswith("??"):
+                if line[3:]: mod_list.append(line[3:])
+            else:
+                new_list.append(line[3:])
+
+        for file_path in new_list:
+            CC(["mv", file_path, tmp_location])
+            CC(["touch", file_path])
+            CC(["git", "add", file_path])
+            CC(["git", "commit", "-m", "{} NEW {}".format(commit, file_path)])
+            CC(["mv", tmp_location, file_path])
+
+        for file_path in new_list:
+            add_hunks(file_path)
+            CC(["git", "commit", "-m", "{} MOD {} {}".format(commit,
+                                                             file_path,
+                                                             message)])
+
+        for file_path in mod_list:
+            add_hunks(file_path)
+            CC(["git", "commit", "-m", "{} MOD {} {}".format(commit,
+                                                             file_path,
+                                                             message)])
+
+from tempfile import mkdtemp
+from shutil import rmtree
+dir = mkdtemp()
+try:
+    main(dir)
+finally:
+    rmtree(dir)
+
