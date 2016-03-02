@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 
+import os
 import os.path
 import re
 import sys
@@ -55,7 +56,7 @@ def main(tmp_dir):
         pass
 
     CC(["git", "checkout", "-b", "rebase"])
-    CC(["git", "reset", "--hard", "{}~1".format(commit_list[-1][0])])
+    CC(["git", "reset", "--hard", "{}^".format(commit_list[-1][0])])
 
     for commit, message in reversed(commit_list):
         new_list = []
@@ -63,6 +64,7 @@ def main(tmp_dir):
         del_list = []
         mov_list = []
 
+        # handle renames
         CC(["git", "cherry-pick", "-n", commit])
         for line in COMM(["git", "status", "-uall", "--porcelain"]):
             if line.startswith("R "):
@@ -71,24 +73,50 @@ def main(tmp_dir):
                 if b[0] == '"' and b[-1] == '"': b = b[1:-1]
                 mov_list.append((a, b))
 
+        CC(["git", "reset", "--hard", "HEAD"])
+
+        for a, b in mov_list:
+            a_dir = os.path.dirname(a)
+            b_dir = os.path.dirname(b)
+
+            try:
+                os.makedirs(b_dir)
+            except OSError:
+                pass
+
+            CC(["git", "mv", a, b])
+            CC(["git", "commit", "-m", "{} REN {} -> {}".format(commit, a, b)])
+
+            try:
+                os.removedirs(a_dir)
+            except OSError:
+                pass
+
+
+        # handle deletes
+        CC(["git", "cherry-pick", "-n", commit])
+        for line in COMM(["git", "status", "-uall", "--porcelain"]):
             if line.startswith("D "):
                 del_list.append(line[3:])
 
-        CC(["git", "reset", "HEAD"])
-
-        for a, b in mov_list:
-            CC(["git", "mv", a, b])
-            CC(["git", "commit", "-m", "{} REN {} -> {}".format(commit, a, b)])
+        CC(["git", "reset", "--hard", "HEAD"])
 
         for file_path in del_list:
             CC(["git", "rm", file_path])
             CC(["git", "commit", "-m", "{} DEL {}".format(commit, file_path)])
 
+
+        # handle new files and modifications
+        CC(["git", "cherry-pick", "-n", commit])
+
         for line in COMM(["git", "status", "-uall", "--porcelain"]):
-            if not line.startswith("??"):
-                if line[3:]: mod_list.append(line[3:])
-            else:
+            if line.startswith("A "):
                 new_list.append(line[3:])
+
+            if line.startswith("M "):
+                mod_list.append(line[3:])
+
+        CC(["git", "reset", "HEAD"])
 
         for file_path in new_list:
             CC(["mv", file_path, tmp_location])
