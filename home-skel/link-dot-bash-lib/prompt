@@ -72,34 +72,44 @@ function __prompt_update() {
             __prompt_git_branch="${__prompt_git_branch}*"
         fi
     fi
-
     __prompt_venv="$VIRTUAL_ENV"
     if [ -n "$__prompt_venv" ] ; then
         __prompt_venv="$( basename "$__prompt_venv" )"
     fi
 
+
     subprompt=""
     botprompt=""
+    local subprompt_length=0
 
     date_fmt="+$TERM_COLORS_BLUE%a $TERM_COLORS_RESET%d"
     date_fmt="${date_fmt}$TERM_COLORS_RESET"
     subprompt="${subprompt}$( date "$date_fmt" )"
+    subprompt_length="$(( subprompt_length + 6 ))"
 
+    local hn="$( hostname )"
     subprompt="${subprompt} $TERM_COLORS_CYAN$USER"
     subprompt="${subprompt}$TERM_COLORS_BOLD_BLUE@"
-    subprompt="${subprompt}$TERM_COLORS_BLUE$( hostname )"
+    subprompt="${subprompt}$TERM_COLORS_BLUE$hn"
     subprompt="${subprompt}$TERM_COLORS_RESET"
 
+    subprompt_length="$(( subprompt_length + ${#USER} + ${#hn} + 2 ))"
+
     if [ "$( pwd )" '!=' "$HOME" ] ; then
+        local cwd="$( basename "$( pwd )" )"
         subprompt="${subprompt} $TERM_COLORS_BOLD_GREEN["
-        subprompt="${subprompt}$TERM_COLORS_GREEN$( basename "$( pwd )" )"
+        subprompt="${subprompt}$TERM_COLORS_GREEN$cwd"
         subprompt="${subprompt}$TERM_COLORS_BOLD_GREEN]"
         subprompt="${subprompt}$TERM_COLORS_RESET"
+
+        subprompt_length="$(( subprompt_length + ${#cwd} + 3 ))"
     fi
 
     if [ -n "$__prompt_git_branch" ] ; then
         subprompt="${subprompt} $TERM_COLORS_BOLD_RED("
         subprompt="${subprompt}$TERM_COLORS_RED$__prompt_git_branch"
+
+        subprompt_length="$(( subprompt_length + ${#__prompt_git_branch} + 3 ))"
 
         if [ -n "$__prompt_git_remote_status" ] ; then
             subprompt="${subprompt}: "
@@ -107,6 +117,9 @@ function __prompt_update() {
             subprompt="${subprompt}${__prompt_git_remote_status::1}"
             subprompt="${subprompt}$TERM_COLORS_BOLD_YELLOW"
             subprompt="${subprompt}${__prompt_git_remote_status:1}"
+
+            subprompt_length="$(( subprompt_length +
+                                  ${#__prompt_git_remote_status} ))"
         fi
 
         subprompt="${subprompt}$TERM_COLORS_BOLD_RED)"
@@ -119,6 +132,8 @@ function __prompt_update() {
         subprompt="${subprompt}$__prompt_venv"
         subprompt="${subprompt}$TERM_COLORS_BOLD_CYAN)"
         subprompt="${subprompt}$TERM_COLORS_RESET"
+
+        subprompt_length="$(( subprompt_length + ${#__prompt_venv} + 4 ))"
     fi
 
     botprompt="$( pwd )"
@@ -132,10 +147,22 @@ function __prompt_update() {
     echo -n "$botprompt"
     term_cursor_restore
 
-    term_cursor_save
-    term_cursor_down
-    echo -n "$subprompt"
-    term_cursor_restore
+    local n_term="$( term_get_width )"
+    local n_padding="$(( n_term - subprompt_length - 10 ))"
+
+    term_clear_right
+    if [ "$(( n_padding < 0 ))" '!=' '0' ] ; then
+        echo "$subprompt"
+    else
+        if [ "$(( n_padding > 30 ))" '!=' '0' ] ; then
+            n_padding=30
+        fi
+
+        term_cursor_save
+        term_cursor_right $(( n_padding + 10 ))
+        echo -n "$subprompt"
+        term_cursor_restore
+    fi
 
     # PS1="${PS1}$__prompt_shell_level"
     # PS1="${PS1}$__prompt_number_of_jobs"

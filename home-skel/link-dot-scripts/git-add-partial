@@ -1,0 +1,24 @@
+#! /usr/bin/env bash
+
+GIT_DIR=".git"
+if [ -f "$GIT_DIR" ] ; then
+    GIT_DIR="$( cat "$GIT_DIR" | grep 'gitdir:' | sed -re 's/gitdir\: //g' )"
+fi
+
+trap "rm -rf $GIT_DIR/_hack" 0 1 2 3 15
+mkdir -p "$GIT_DIR/_hack"
+
+while [ "$#" '!=' '0' ] ; do
+    file="$1" ; shift
+    sum="$( echo "$file" | shasum | cut -d' ' -f 1 )"
+    extension="$( basename "$file" | sed -re 's/\.?[^\.]+(.*)/\1/g' )"
+
+    cp "$file" "$GIT_DIR/_hack/$sum$extension"
+    git checkout "$file" || ( rm "$file" ; touch "$file" )
+    vimdiff "$file" "$GIT_DIR/_hack/$sum$extension"
+    git add "$file"
+    cp "$GIT_DIR/_hack/$sum$extension" "$file"
+done
+
+rm -rf "$GIT_DIR/_hack"
+

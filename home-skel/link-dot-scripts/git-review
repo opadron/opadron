@@ -1,10 +1,16 @@
 #! /usr/bin/env bash
 
-export GIT_PAGER='less -+$LESS -RSX'
+GIT_DIR=".git"
 
-while [ -d .git/rebase-merge -o -d .git/rebase-apply ] ; do
-    git log --oneline HEAD^..
-    git diff HEAD^ HEAD
+if [ -f "$GIT_DIR" ] ; then
+    GIT_DIR="$( cat "$GIT_DIR" | grep 'gitdir:' | sed -re 's/gitdir\: //g' )"
+fi
+
+while [ -d "$GIT_DIR/rebase-merge" -o -d "$GIT_DIR/rebase-apply" ] ; do
+    (
+        git -c color.ui=always --no-pager log --oneline HEAD^..
+        git -c color.ui=always --no-pager diff HEAD^ HEAD
+    ) | less -RSX
 
     echo -n "commit message: "
     read message
