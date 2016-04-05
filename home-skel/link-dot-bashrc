@@ -13,7 +13,7 @@ mload force_us_utf8_locale
 mload gpg_agent
 mload introspection
 mload local_rc_file
-mload prompt
+# mload prompt
 mload tab_complete
 mload solarize
 

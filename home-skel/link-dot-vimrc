@@ -1,7 +1,10 @@
+
 scriptencoding utf-8
 set encoding=utf-8
 set fileencoding=utf-8
 set termencoding=utf-8
+
+execute pathogen#infect()
 
 "# BASIC OPTIONS ##############################################################"
 
@@ -42,6 +45,12 @@ set re=0
 
 set completeopt=longest,menuone,preview
 
+if has("gui_running")
+  set guioptions=cM
+  set guifont=Courier\ Bold\ 14
+  set columns=100
+endif
+
 let mapleader=","
 
 "------------------------------------------------------------------------------"
@@ -49,109 +58,50 @@ let mapleader=","
 
 syntax enable
 
-let the_background="dark"
-let the_color_scheme="vividchalk"
+let g:schemes = [
+  \["dark" , ["vividchalk" , "vividchalk" ]],
+  \["light", ["solarized"  , "solarized"  ]],
+  \["dark" , ["solarized"  , "solarized"  ]],
+  \["light", ["sol"        , "sol-term"   ]],
+  \["light", ["mac_classic", "mac_classic"]]
+\]
 
-if !&diff || 1
-    if $VIMCOLORBACKGROUND != ""
-        let the_background=$VIMCOLORBACKGROUND
-    endif
+let g:scheme_index=0
 
-    if $VIMCOLORSCHEME != ""
-        let the_color_scheme=$VIMCOLORSCHEME
-        let g:solarized_termtrans=1
-        let g:solarized_bold=1
-        let g:solarized_underline=1
-        let g:solarized_italic=1
-    endif
-endif
+function CycleSchemes()
+  let g:scheme_index = (g:scheme_index + 1)%len(g:schemes)
+  let entry = g:schemes[g:scheme_index]
 
+  if entry[1][0] == "solarized"
+    let g:solarized_termtrans=1
+    let g:solarized_bold=1
+    let g:solarized_underline=1
+    let g:solarized_italic=1
+  endif
 
-execute "set background=" . the_background
-execute "colorscheme ". the_color_scheme
-if &background != the_background
-    execute "set background=" . the_background
-endif
+  execute "set background=" . entry[0]
+  if has("gui_running")
+    execute "colorscheme " . entry[1][0]
+  else
+    execute "colorscheme " . entry[1][1]
+  endif
+endfunction
 
+call CycleSchemes()
 
 set   cursorline   " highlight current line
 set   cursorcolumn " highlight current column
 
-if &cursorline
-    hi CursorLine term=NONE cterm=NONE ctermbg=233 guibg=#333333
-    if the_color_scheme == "solarized"
-        if the_background == "dark"
-            hi CursorLine term=NONE cterm=NONE ctermbg=0 guibg=#333333
-        else
-            hi CursorLine term=NONE cterm=NONE ctermbg=187 guibg=#333333
-        endif
-    endif
-endif
-
-if &cursorcolumn
-    hi CursorColumn term=NONE cterm=NONE ctermbg=233 guibg=#333333
-    if the_color_scheme == "solarized"
-        if the_background == "dark"
-            hi CursorColumn term=NONE cterm=NONE ctermbg=0 guibg=#333333
-        else
-            hi CursorColumn term=NONE cterm=NONE ctermbg=254 guibg=#333333
-        endif
-    endif
-endif
-
 highlight OverLength ctermbg=red ctermfg=white guibg=#592929
 match OverLength /\%81v.\+/
-
-if the_background == "dark"
-    highlight Folded term=standout ctermfg=233 ctermbg=8
-    if the_color_scheme == "solarized"
-        highlight Folded term=standout ctermfg=4 ctermbg=23
-    endif
-else
-    highlight Folded ctermfg=233 ctermbg=7
-endif
 
 set colorcolumn=+1
 
 "------------------------------------------------------------------------------"
 "# PLUGIN/FILETYPE-SPECIFIC OPTIONS ###########################################"
 
-" indent guides
-let g:indent_guides_enable_on_vim_startup=1
-let g:indent_guides_start_level=1
-let g:indent_guides_guide_size=4
-let g:indent_guides_auto_colors = 0
-
-let indent_color_odd=232
-let indent_color_even=233
-
-if the_color_scheme == "solarized"
-    if the_background == "dark"
-        let indent_color_odd=0
-        let indent_color_even=8
-    else
-        let indent_color_odd=230
-        let indent_color_even=7
-    endif
-endif
-
-if the_background == "light"
-    let tmp=indent_color_odd
-    let indent_color_odd=indent_color_even
-    let indent_color_even=tmp
-endif
-
-execute "autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd " .
-    \ "guibg=" . indent_color_odd . " ctermbg=" . indent_color_odd
-execute "autocmd VimEnter,Colorscheme * :hi IndentGuidesEven " .
-    \ "guibg=" . indent_color_even . " ctermbg=" . indent_color_even
-
-
-autocmd FileType python setlocal completeopt-=preview
-autocmd FileType python setlocal omnifunc=
-
-autocmd FileType html setlocal tabstop=2
-autocmd FileType html setlocal shiftwidth=2
+" indentLine
+let g:indentLine_char='│'
 
 " super tab
 let g:SuperTabSetDefaultCompletionType="context"
@@ -159,11 +109,19 @@ let g:SuperTabLongestEnhanced=1
 let g:SuperTabLongestHighlight=0
 let g:SuperTabClosePreviewOnPopupClose=1
 
-autocmd FileType *
+if has("autocmd")
+  autocmd FileType *
     \ if &omnifunc != '' |
     \   call SuperTabChain(&omnifunc, "<c-p>") |
     \   call SuperTabSetDefaultCompletionType("<c-x><c-u>") |
     \ endif
+endif
+
+" unite
+if has("autocmd")
+  autocmd FileType unite setlocal cpoptions-=v
+endif
+
 
 " javacomplete
 if has("autocmd")
@@ -171,6 +129,7 @@ if has("autocmd")
     autocmd Filetype java setlocal omnifunc=javacomplete#CompleteParamsInfo
 endif
 
+" airline
 let g:airline_left_sep=" "
 let g:airline_right_sep=" "
 let g:airline_detect_modified=1
@@ -179,20 +138,78 @@ let g:airline_detect_iminsert=0
 let g:airline_inactive_collapse=1
 let g:airline_exclude_preview=1
 
-let g:AutoPairsFlyMode=1
+" vimshell
+let g:vimshell_prompt='Δ '
+if has("autocmd")
+  autocmd FileType vimshell setlocal nonumber
+  autocmd FileType vimshell highlight clear OverLength
+  autocmd FileType vimshell set nocursorline
+  autocmd FileType vimshell set nocursorcolumn
+endif
 
+" misc autocmds
+if has("autocmd")
+  autocmd FileType python setlocal completeopt-=preview
+  autocmd FileType python setlocal omnifunc=
+
+  autocmd FileType html setlocal tabstop=2
+  autocmd FileType html setlocal softtabstop=2
+  autocmd FileType html setlocal shiftwidth=2
+
+  autocmd FileType javascript setlocal tabstop=2
+  autocmd FileType javascript setlocal softtabstop=2
+  autocmd FileType javascript setlocal shiftwidth=2
+
+  autocmd FileType yaml setlocal tabstop=2
+  autocmd FileType yaml setlocal softtabstop=2
+  autocmd FileType yaml setlocal shiftwidth=2
+
+  autocmd FileType vim setlocal tabstop=2
+  autocmd FileType vim setlocal softtabstop=2
+  autocmd FileType vim setlocal shiftwidth=2
+endif
+
+"------------------------------------------------------------------------------"
 "# KEY REMAPPINGS #############################################################"
 
 nnoremap H :pop<CR>
 nnoremap L <C-]>
 
-nnoremap <Leader><Leader> :Unite -no-split -start-insert file_rec<CR>
+nnoremap <C-H> <C-w>h
+nnoremap <C-J> <C-w>j
+nnoremap <C-K> <C-w>k
+nnoremap <C-L> <C-w>l
 
-nnoremap <Leader>: :vsplit<CR><C-w>l:Unite -no-split -start-insert file_rec<CR>
-nnoremap <Leader>t :tab Unite -no-split -start-insert file_rec<CR>
-nnoremap <Leader>. :Unite -no-split -start-insert source<CR>
+nnoremap = 10<C-w>>
+nnoremap - 10<C-w><
+nnoremap + 5<C-w>+
+nnoremap _ 5<C-w>-
 
-nnoremap <Leader>/ :Unite -start-insert line<CR>
+let unite_options=""
+" let unite_options.=" -vertical"
+" let unite_options.=" -tab"
+let unite_options.=" -buffer-name=unite"
+let unite_options.=" -toggle"
+let unite_options.=" -start-insert"
+" let unite_options.=" -auto-preview"
+" let unite_options.=" -auto-highlight"
+let unite_options.=" -auto-resize"
+let unite_options.=" -no-restore"
+
+" nnoremap <Leader><Leader> :Unite -no-split -start-insert file_rec<CR>
+nnoremap <Leader><Space>
+  \ :execute "Unite" . unite_options<CR>
+
+nnoremap <Leader>/ :execute "Unite" . unite_options . " line"<CR>
+
+nnoremap <Leader><Leader>
+  \ :execute "Unite" . unite_options . " file_rec/async"<CR>
+
+nnoremap <Leader>\| :vsplit<CR>
+nnoremap <Leader>- :split<CR>
+
+nnoremap <Leader><Tab> :call CycleSchemes()<CR>
+" nnoremap <Leader><Space> :VimShell<CR>
 
 "------------------------------------------------------------------------------"
 

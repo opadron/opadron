@@ -1,0 +1,42 @@
+[submodule "home-skel/link-dot-vim-modules/pathogen"]
+	path = home-skel/link-dot-vim-modules/pathogen
+	url = git://github.com/tpope/vim-pathogen
+[submodule "home-skel/link-dot-vim-modules/unite"]
+	path = home-skel/link-dot-vim-modules/unite
+	url = git://github.com/shougo/unite.vim
+[submodule "home-skel/link-dot-vim-modules/supertab"]
+	path = home-skel/link-dot-vim-modules/supertab
+	url = git://github.com/ervandew/supertab
+[submodule "home-skel/link-dot-vim-modules/ultisnips"]
+	path = home-skel/link-dot-vim-modules/ultisnips
+	url = git://github.com/SirVer/ultisnips
+[submodule "home-skel/link-dot-vim-modules/airline"]
+	path = home-skel/link-dot-vim-modules/airline
+	url = git://github.com/vim-airline/vim-airline
+[submodule "home-skel/link-dot-vim-modules/virtualenv"]
+	path = home-skel/link-dot-vim-modules/virtualenv
+	url = git://github.com/jmcantrell/vim-virtualenv
+[submodule "home-skel/link-dot-vim-modules/vimproc"]
+	path = home-skel/link-dot-vim-modules/vimproc
+	url = git://github.com/shougo/vimproc
+[submodule "home-skel/link-dot-vim-modules/vimshell"]
+	path = home-skel/link-dot-vim-modules/vimshell
+	url = git://github.com/shougo/vimshell
+[submodule "home-skel/link-dot-vim-modules/indentline"]
+	path = home-skel/link-dot-vim-modules/indentline
+	url = git://github.com/vim-scripts/indentLine.vim
+[submodule "home-skel/link-dot-vim-modules/solarized"]
+	path = home-skel/link-dot-vim-modules/solarized
+	url = git://github.com/altercation/vim-colors-solarized
+[submodule "home-skel/link-dot-vim-modules/mac-classic"]
+	path = home-skel/link-dot-vim-modules/mac-classic
+	url = git://github.com/nelstrom/vim-mac-classic-theme
+[submodule "home-skel/link-dot-vim-modules/sol"]
+	path = home-skel/link-dot-vim-modules/sol
+	url = git://github.com/notpratheek/vim-sol
+[submodule "home-skel/link-dot-vim-modules/vividchalk"]
+	path = home-skel/link-dot-vim-modules/vividchalk
+	url = git://github.com/vim-scripts/vividchalk.vim
+[submodule "home-skel/link-dot-vim-modules/yaml"]
+	path = home-skel/link-dot-vim-modules/yaml
+	url = git://github.com/stephpy/vim-yaml
