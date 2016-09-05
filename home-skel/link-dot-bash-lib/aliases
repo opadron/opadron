@@ -6,16 +6,7 @@ source "$HOME/.bash-lib/init"
 mload commonlib
 mload introspection
 
-if env_check TRUE INTROSPECT_LS_COLOR_SUPPORT ; then
-    alias ls="ls -F --color=auto"
-else
-    alias ls="ls -GF"
-fi
-
-alias ll='ls -alF'
-alias la='ls -A'
-alias l='ls -CF'
-
+alias ls="ls -F --color=auto"
 alias vi='vim'
 
 fi #!__aliases_guard

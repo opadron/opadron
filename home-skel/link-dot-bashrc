@@ -7,12 +7,15 @@ mload autoload
 
 mload aliases
 mload commonlib
+mload completion
 mload disable_ixon
+mload docker_machine
 mload environment
 mload force_us_utf8_locale
 mload gpg_agent
 mload introspection
 mload local_rc_file
+mload mac_coreutils
 # mload prompt
 mload tab_complete
 mload solarize

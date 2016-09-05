@@ -5,9 +5,6 @@ source "$HOME/.bash-lib/init"
 
 mload commonlib
 
-check_exit_code INTROSPECT_LS_COLOR_SUPPORT ls --color
-INTROSPECT_LS_COLOR_SUPPORT="$(( INTROSPECT_LS_COLOR_SUPPORT == 0 ))"
-
 INTROSPECT_PLATFORM="$( platform )"
 
 fi #!__introspection_guard

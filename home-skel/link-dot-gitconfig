@@ -9,3 +9,7 @@ history = log --graph --decorate --oneline --simplify-by-decoration
 log1 = log --oneline
 [color]
 	status = always
+[core]
+	pager = less -+$LESS -rRSX
+[merge]
+	tool = vimdiff

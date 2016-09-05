@@ -1,0 +1,34 @@
+#! /usr/bin/env bash
+
+if [ -z "$__mac_coreutils_guard" ] ; then __mac_coreutils_guard=1
+
+mload commonlib
+mload introspection
+
+if [ "$INTROSPECT_PLATFORM" = 'MAC' ] ; then
+    core_utils_dir="/usr/local/opt/coreutils/libexec"
+
+    if [ -d "$core_utils_dir/gnubin" ] ; then
+        envpush PATH "$core_utils_dir/gnubin"
+    fi
+
+    if [ -d "$core_utils_dir/gnuman" ] ; then
+        envpush MANPATH "$core_utils_dir/gnuman"
+    fi
+
+    sed_dir="/usr/local/opt/gnu-sed/libexec"
+
+    if [ -d "$sed_dir/gnubin" ] ; then
+        envpush PATH "$sed_dir/gnubin"
+    fi
+
+    if [ -d "$sed_dir/gnuman" ] ; then
+        envpush MANPATH "$sed_dir/gnuman"
+    fi
+
+    export PATH
+    export MANPATH
+fi
+
+fi # !__mac_coreutils_guard
+

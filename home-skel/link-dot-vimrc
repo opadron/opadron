@@ -60,13 +60,13 @@ syntax enable
 
 let g:schemes = [
   \["dark" , ["vividchalk" , "vividchalk" ]],
+  \["light", ["sol"        , "sol-term"   ]],
   \["light", ["solarized"  , "solarized"  ]],
   \["dark" , ["solarized"  , "solarized"  ]],
-  \["light", ["sol"        , "sol-term"   ]],
   \["light", ["mac_classic", "mac_classic"]]
 \]
 
-let g:scheme_index=0
+let g:scheme_index=-1
 
 function CycleSchemes()
   let g:scheme_index = (g:scheme_index + 1)%len(g:schemes)
@@ -159,6 +159,13 @@ if has("autocmd")
   autocmd FileType javascript setlocal tabstop=2
   autocmd FileType javascript setlocal softtabstop=2
   autocmd FileType javascript setlocal shiftwidth=2
+
+  autocmd FileType json setlocal tabstop=2
+  autocmd FileType json setlocal softtabstop=2
+  autocmd FileType json setlocal shiftwidth=2
+  let g:vim_json_syntax_conceal = 0
+  let g:indentLine_noConcealCursor=''
+  let g:indentLine_concealcursor=''
 
   autocmd FileType yaml setlocal tabstop=2
   autocmd FileType yaml setlocal softtabstop=2
