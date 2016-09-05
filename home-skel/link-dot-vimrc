@@ -1,14 +1,31 @@
-
 scriptencoding utf-8
+
 set encoding=utf-8
 set fileencoding=utf-8
 set termencoding=utf-8
 
-execute pathogen#infect()
+filetype off
+
+set rtp+=~/.vim/bundle/vundle.vim
+call vundle#begin()
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/airline'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/custom'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/indentline'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/mac-classic'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/sol'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/solarized'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/supertab'''
+" execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/ultisnips'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/unite'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/vimproc'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/virtualenv'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/vividchalk'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/yaml'''
+call vundle#end()
 
 "# BASIC OPTIONS ##############################################################"
 
-filetype plugin on
+filetype plugin indent on
 
 set nocompatible
 set cpoptions+=v
@@ -39,9 +56,8 @@ set lazyredraw
 set ttyfast
 set re=0
 
-" undofile
-" persistent-undo
-" conceallevel
+set undofile
+" set conceallevel
 
 set completeopt=longest,menuone,preview
 

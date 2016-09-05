@@ -8,3 +8,4 @@ node_modules
 .idea/
 tags
 .netrwhist
+.home-skel/link-dot-vim/*/

@@ -1,9 +1,6 @@
 [submodule "home-skel/link-dot-vim-modules/pathogen"]
 	path = home-skel/link-dot-vim-modules/pathogen
 	url = git://github.com/tpope/vim-pathogen
-[submodule "home-skel/link-dot-vim-modules/unite"]
-	path = home-skel/link-dot-vim-modules/unite
-	url = git://github.com/shougo/unite.vim
 [submodule "home-skel/link-dot-vim-modules/supertab"]
 	path = home-skel/link-dot-vim-modules/supertab
 	url = git://github.com/ervandew/supertab
@@ -40,3 +37,12 @@
 [submodule "home-skel/link-dot-vim-modules/yaml"]
 	path = home-skel/link-dot-vim-modules/yaml
 	url = git://github.com/stephpy/vim-yaml
+[submodule "home-skel/link-dot-vim-modules/vundle.vim"]
+	path = home-skel/link-dot-vim-modules/vundle.vim
+	url = git://github.com/vundlevim/vundle.vim
+[submodule "home-skel/link-dot-vim-modules/custom"]
+	path = home-skel/link-dot-vim-modules/custom
+	url = git://github.com/opadron/vim-customizations
+[submodule "home-skel/link-dot-vim-modules/unite"]
+	path = home-skel/link-dot-vim-modules/unite
+	url = git://github.com/shougo/unite.vim
