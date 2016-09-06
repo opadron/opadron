@@ -23,6 +23,7 @@ execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/vimproc'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/virtualenv'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/vividchalk'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/yaml'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/ycm-generator'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/youcompleteme'''
 call vundle#end()
 
@@ -31,8 +32,8 @@ call vundle#end()
 filetype plugin indent on
 
 set nocompatible
-set cpoptions+=v
-set backspace=0
+" set cpoptions+=v
+set backspace="indent,eol,start"
 set autoindent
 set smartindent
 set modeline
@@ -143,6 +144,8 @@ let g:SuperTabClosePreviewOnPopupClose=1
 let g:ycm_key_list_select_completion = ['<C-n>', '<Down>']
 let g:ycm_key_list_previous_completion = ['<C-p>', '<Up>']
 let g:SuperTabDefaultCompletionType = '<C-n>'
+
+let g:ycm_confirm_extra_conf = 0
 
 " better key bindings for UltiSnipsExpandTrigger
 let g:UltiSnipsExpandTrigger = "<tab>"
