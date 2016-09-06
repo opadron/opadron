@@ -14,16 +14,20 @@ execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/custom'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/easymotion'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/indentline'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/mac-classic'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/match-tag-always'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/sol'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/solarized'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/supertab'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/syntastic'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/ultisnips'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/unite'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/vim-json'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/vim-less'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/vim-css3-syntax'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/vimproc'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/virtualenv'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/vividchalk'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/yaml'''
-execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/ycm-generator'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/youcompleteme'''
 call vundle#end()
 
@@ -49,6 +53,7 @@ set incsearch
 set number
 set numberwidth=4
 set foldcolumn=0
+set foldlevelstart=99
 set foldmethod=syntax
 set wildmode=longest,list
 set textwidth=80
@@ -59,6 +64,7 @@ set laststatus=2
 set lazyredraw
 set ttyfast
 set re=0
+set signcolumn=yes
 
 " set undofile
 " set conceallevel
@@ -152,6 +158,26 @@ let g:UltiSnipsExpandTrigger = "<tab>"
 let g:UltiSnipsJumpForwardTrigger = "<tab>"
 let g:UltiSnipsJumpBackwardTrigger = "<s-tab>"
 
+" match tag always
+let g:mta_filetypes = {
+  \ 'html' : 1,
+  \ 'xhtml' : 1,
+  \ 'xml' : 1,
+  \ 'javascript' : 1,
+  \ 'jinja' : 1
+\}
+
+let g:mta_use_matchparen_group = 0
+
+" syntastic
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
 
 if has("autocmd")
   autocmd FileType *

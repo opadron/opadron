@@ -55,3 +55,18 @@
 [submodule "home-skel/link-dot-vim-modules/airline-themes"]
 	path = home-skel/link-dot-vim-modules/airline-themes
 	url = git://github.com/vim-airline/vim-airline-themes
+[submodule "home-skel/link-dot-vim-modules/match-tag-always"]
+	path = home-skel/link-dot-vim-modules/match-tag-always
+	url = git://github.com/Valloric/MatchTagAlways
+[submodule "home-skel/link-dot-vim-modules/vim-json"]
+	path = home-skel/link-dot-vim-modules/vim-json
+	url = git://github.com/helino/vim-json
+[submodule "home-skel/link-dot-vim-modules/vim-css3-syntax"]
+	path = home-skel/link-dot-vim-modules/vim-css3-syntax
+	url = git://github.com/hail2u/vim-css3-syntax
+[submodule "home-skel/link-dot-vim-modules/vim-less"]
+	path = home-skel/link-dot-vim-modules/vim-less
+	url = https://github.com/groenewege/vim-less
+[submodule "home-skel/link-dot-vim-modules/syntastic"]
+	path = home-skel/link-dot-vim-modules/syntastic
+	url = git://github.com/scrooloose/syntastic
