@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+# A better vimdiff mergetool for Git
+#
+# Add this mergetool to your ~/.gitconfig (you can substitute gvim for vim):
+#
+# git config --global merge.tool vd
+# git config --global mergetool.vd.cmd 'vm $LOCAL $REMOTE'
+# git config --global mergetool.vdtrustExitCode true
+# git config --global mergetool.keepBackup false
+#
+# The next time you perform a merge with conflicts, invoke this tool with the
+# following command. (Of course you can set it as your default mergetool as
+# well.)
+#
+#   git mergetool --tool vd
+#
+# NOTE: Use :cq to abort the merge and exit Vim with an error code.
+
+if [ -z "$*" -o "$#" -lt 2 ] ; then
+    echo -e "Usage: $0 \$LOCAL \$REMOTE[ \$MERGED]"
+    exit 1
+fi
+
+LOCAL="$1" ; shift
+REMOTE="$1" ; shift
+MERGED="$1" ; shift
+
+if [ -z "$MERGED" ] ; then # regular diff
+    LCONFL="${LOCAL}.$$.tmp"
+    cat "${LOCAL}" > "${LCONFL}"
+    trap 'rm -f "'"${LCONFL}"'"' SIGINT SIGTERM EXIT
+    vimdiff -f -d "${LCONFL}" "${REMOTE}"
+    exit_code="$?"
+    # Overwrite $MERGED only if vimdiff exits cleanly.
+    if [[ $exit_code  == "0" ]] ; then
+        cat "${LCONFL}" > "${LOCAL}"
+    fi
+else
+    printf -v QLOCAL '%q' "${LOCAL}"
+    printf -v QREMOTE '%q' "${REMOTE}"
+    printf -v QMERGED '%q' "${MERGED}"
+
+    # Temporary files for left and right side
+    LCONFL="${MERGED}.LOCAL.$$.tmp"
+    RCONFL="${MERGED}.REMOTE.$$.tmp"
+
+    # Always delete our temp files; Git will handle it's own temp files
+    trap 'rm -f "'"${LCONFL}"'" "'"${RCONFL}"'"' SIGINT SIGTERM EXIT
+
+    # Remove the conflict markers for each 'side' and put each into a temp file
+    sed -e '/^<<<<<<< /,/^=======$/d' -e '/^>>>>>>> /d' "${MERGED}" > "${LCONFL}"
+    sed -e '/^=======$/,/^>>>>>>> /d' -e '/^<<<<<<< /d' "${MERGED}" > "${RCONFL}"
+
+    # Fire up vimdiff
+    vimdiff -f -R -d "${LCONFL}" "${RCONFL}" -c ":set noro"
+    #         -c ":tabe $QLOCAL" \
+    #         -c ":vert diffs $QBASE" \
+    #         -c ":vert diffs $QREMOTE" \
+    #         -c ":winc t" \
+    #         -c ":tabe $QMERGED" \
+    #         -c ":tabfir"
+
+    exit_code=$?
+
+    # Overwrite $MERGED only if vimdiff exits cleanly.
+    if [[ $exit_code  == "0" ]] ; then
+        cat "${LCONFL}" > "${MERGED}"
+    fi
+fi
+
+exit $exit_code

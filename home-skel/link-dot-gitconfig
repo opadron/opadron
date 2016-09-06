@@ -12,4 +12,9 @@ log1 = log --oneline
 [core]
 	pager = less -+$LESS -rRSX
 [merge]
-	tool = vimdiff
+	tool = vd
+[mergetool "vd"]
+	cmd = vm $LOCAL REMOTE
+[mergetool]
+	vdtrustExitCode = true
+	keepBackup = false
