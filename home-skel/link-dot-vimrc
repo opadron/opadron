@@ -9,6 +9,7 @@ filetype off
 set rtp+=~/.vim/bundle/vundle.vim
 call vundle#begin()
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/airline'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/airline-themes'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/custom'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/easymotion'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/indentline'''
@@ -16,13 +17,13 @@ execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/mac-classic'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/sol'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/solarized'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/supertab'''
-execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/youcompleteme'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/ultisnips'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/unite'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/vimproc'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/virtualenv'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/vividchalk'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/yaml'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/youcompleteme'''
 call vundle#end()
 
 "# BASIC OPTIONS ##############################################################"
@@ -77,20 +78,20 @@ let mapleader=","
 syntax enable
 
 let g:schemes = [
-  \["dark" , ["vividchalk" , "vividchalk" ]],
-  \["light", ["sol"        , "sol-term"   ]],
-  \["light", ["solarized"  , "solarized"  ]],
-  \["dark" , ["solarized"  , "solarized"  ]],
-  \["light", ["mac_classic", "mac_classic"]]
+  \["dark" , "vividchalk" , "vividchalk" , "jellybeans" , "jellybeans"      ],
+  \["light", "sol"        , "sol-term"   , "sol"        , "sol"             ],
+  \["light", "solarized"  , "solarized"  , "solarized"  , "base16_solarized"],
+  \["dark" , "solarized"  , "solarized"  , "solarized"  , "base16_solarized"],
+  \["light", "mac_classic", "mac_classic", "understated", "understated"     ]
 \]
 
-let g:scheme_index=-1
+let g:scheme_index=0
 
 function CycleSchemes()
   let g:scheme_index = (g:scheme_index + 1)%len(g:schemes)
   let entry = g:schemes[g:scheme_index]
 
-  if entry[1][0] == "solarized"
+  if entry[1] == "solarized"
     let g:solarized_termtrans=1
     let g:solarized_bold=1
     let g:solarized_underline=1
@@ -99,13 +100,18 @@ function CycleSchemes()
 
   execute "set background=" . entry[0]
   if has("gui_running")
-    execute "colorscheme " . entry[1][0]
+    execute "colorscheme " . entry[1]
+    execute "AirlineTheme " . entry[3]
   else
-    execute "colorscheme " . entry[1][1]
+    execute "colorscheme " . entry[2]
+    execute "AirlineTheme " . entry[4]
   endif
 endfunction
 
-call CycleSchemes()
+set background="dark"
+colorscheme vividchalk
+let g:airline_theme = 'jellybeans'
+
 
 set   cursorline   " highlight current line
 set   cursorcolumn " highlight current column

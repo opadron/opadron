@@ -52,3 +52,6 @@
 [submodule "home-skel/link-dot-vim-modules/easymotion"]
 	path = home-skel/link-dot-vim-modules/easymotion
 	url = git://github.com/easymotion/vim-easymotion
+[submodule "home-skel/link-dot-vim-modules/airline-themes"]
+	path = home-skel/link-dot-vim-modules/airline-themes
+	url = git://github.com/vim-airline/vim-airline-themes
