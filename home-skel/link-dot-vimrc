@@ -41,6 +41,7 @@ set backspace="indent,eol,start"
 set autoindent
 set smartindent
 set modeline
+set formatoptions=tcroqnj
 set ruler
 set tabstop=4
 set softtabstop=0
@@ -66,7 +67,16 @@ set ttyfast
 set re=0
 set signcolumn=yes
 
-" set undofile
+set dir=~/tmp,/var/tmp,/tmp,$TEMP
+set undodir=~/tmp,/var/tmp,/tmp,$TEMP
+set undofile
+
+if has('unnamedplus')
+  set clipboard=unnamedplus,unnamed
+else
+  set clipboard+=unnamed
+endif
+
 " set conceallevel
 
 set completeopt=longest,menuone,preview
