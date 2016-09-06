@@ -46,3 +46,6 @@
 [submodule "home-skel/link-dot-vim-modules/unite"]
 	path = home-skel/link-dot-vim-modules/unite
 	url = git://github.com/shougo/unite.vim
+[submodule "home-skel/link-dot-vim-modules/youcompleteme"]
+	path = home-skel/link-dot-vim-modules/youcompleteme
+	url = git://github.com/Valloric/YouCompleteMe
