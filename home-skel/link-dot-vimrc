@@ -56,7 +56,7 @@ set lazyredraw
 set ttyfast
 set re=0
 
-set undofile
+" set undofile
 " set conceallevel
 
 set completeopt=longest,menuone,preview
