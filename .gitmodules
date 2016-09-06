@@ -49,3 +49,6 @@
 [submodule "home-skel/link-dot-vim-modules/youcompleteme"]
 	path = home-skel/link-dot-vim-modules/youcompleteme
 	url = git://github.com/Valloric/YouCompleteMe
+[submodule "home-skel/link-dot-vim-modules/easymotion"]
+	path = home-skel/link-dot-vim-modules/easymotion
+	url = git://github.com/easymotion/vim-easymotion

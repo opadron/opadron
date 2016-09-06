@@ -10,6 +10,7 @@ set rtp+=~/.vim/bundle/vundle.vim
 call vundle#begin()
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/airline'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/custom'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/easymotion'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/indentline'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/mac-classic'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/sol'''
@@ -119,6 +120,12 @@ set colorcolumn=+1
 
 " indentLine
 let g:indentLine_char='│'
+
+" easymotion
+let g:EasyMotion_do_mapping = 0 " Disable default mappings
+let g:EasyMotion_smartcase = 1
+nmap s <Plug>(easymotion-s2)
+vmap s <Plug>(easymotion-s2)
 
 " super tab
 let g:SuperTabSetDefaultCompletionType="context"
