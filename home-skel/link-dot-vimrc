@@ -96,6 +96,7 @@ syntax enable
 
 let g:schemes = [
   \["dark" , "vividchalk" , "vividchalk" , "jellybeans" , "jellybeans"      ],
+  \["dark" , "smyck"      , "smyck"      , "jellybeans" , "jellybeans"      ],
   \["light", "sol"        , "sol-term"   , "sol"        , "sol"             ],
   \["light", "solarized"  , "solarized"  , "solarized"  , "base16_solarized"],
   \["dark" , "solarized"  , "solarized"  , "solarized"  , "base16_solarized"],
