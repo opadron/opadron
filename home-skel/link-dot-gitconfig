@@ -14,7 +14,7 @@ log1 = log --oneline
 [merge]
 	tool = vd
 [mergetool "vd"]
-	cmd = vm $LOCAL REMOTE
+	cmd = vd $LOCAL REMOTE
 [mergetool]
 	vdtrustExitCode = true
 	keepBackup = false
