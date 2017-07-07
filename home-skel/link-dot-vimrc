@@ -67,15 +67,18 @@ set lazyredraw
 set ttyfast
 set re=0
 set signcolumn=yes
+set vb t_vb=
 
 set dir=~/tmp,/var/tmp,/tmp,$TEMP
 set undodir=~/tmp,/var/tmp,/tmp,$TEMP
 set undofile
 
-if has('unnamedplus')
-  set clipboard=unnamedplus,unnamed
-else
-  set clipboard+=unnamed
+if $TMUX == ''
+  if has('unnamedplus')
+    set clipboard=unnamedplus,unnamed
+  else
+    set clipboard+=unnamed
+  endif
 endif
 
 " set conceallevel
@@ -94,7 +97,7 @@ if has("gui_running")
   elseif has("gui_gtk3"  ) | set guifont=Courier\ New\ 14
   elseif has("gui_kde"   ) | set guifont=Courier\ New/14/-1/5/50/0/0/0/1/0
   elseif has("gui_mac"   ) | set guifont=Courier\ New\ 14
-  elseif has("gui_macvim") | set guifont=Monaco:h14
+  elseif has("gui_macvim") | set guifont=Source\ Code\ Pro\ Semibold:h14
   elseif has("gui_motif" ) | set guifont=Courier\ New\ 14
   elseif has("gui_photon") | set guifont=Courier\ New:s14
   elseif has("gui_win32" ) | set guifont=Courier\ New\ 14
@@ -113,8 +116,8 @@ let mapleader=","
 syntax enable
 
 let g:schemes = [
-  \["dark" , "vividchalk" , "vividchalk" , "jellybeans" , "jellybeans"      ],
   \["dark" , "smyck"      , "smyck"      , "jellybeans" , "jellybeans"      ],
+  \["dark" , "vividchalk" , "vividchalk" , "jellybeans" , "jellybeans"      ],
   \["light", "sol"        , "sol-term"   , "sol"        , "sol"             ],
   \["light", "solarized"  , "solarized"  , "solarized"  , "base16_solarized"],
   \["dark" , "solarized"  , "solarized"  , "solarized"  , "base16_solarized"],
@@ -122,9 +125,13 @@ let g:schemes = [
 \]
 
 let g:scheme_index=0
+let g:first_cycle_schemes_call=1
 
 function CycleSchemes()
-  let g:scheme_index = (g:scheme_index + 1)%len(g:schemes)
+  if g:first_cycle_schemes_call == 0
+    let g:scheme_index = (g:scheme_index + 1)%len(g:schemes)
+  endif
+
   let entry = g:schemes[g:scheme_index]
 
   if entry[1] == "solarized"
@@ -134,20 +141,25 @@ function CycleSchemes()
     let g:solarized_italic=1
   endif
 
-  execute "set background=" . entry[0]
+  let background = entry[0]
+  let colorscheme = entry[2]
+  let airline_theme= entry[4]
+
   if has("gui_running")
-    execute "colorscheme " . entry[1]
-    execute "AirlineTheme " . entry[3]
+    let colorscheme = entry[1]
+    let airline_theme = entry[3]
+  endif
+
+  execute "set background=" . background
+  execute "colorscheme " . colorscheme
+  if g:first_cycle_schemes_call == 1
+    let g:airline_theme = airline_theme
   else
-    execute "colorscheme " . entry[2]
-    execute "AirlineTheme " . entry[4]
+    execute "AirlineTheme " . airline_theme
   endif
 endfunction
 
-set background="dark"
-colorscheme vividchalk
-let g:airline_theme = 'jellybeans'
-
+call CycleSchemes()
 
 set   cursorline   " highlight current line
 set   cursorcolumn " highlight current column
@@ -181,6 +193,7 @@ let g:ycm_key_list_previous_completion = ['<C-p>', '<Up>']
 let g:SuperTabDefaultCompletionType = '<C-n>'
 
 let g:ycm_confirm_extra_conf = 0
+let g:ycm_show_diagnostics_ui = 0
 
 " better key bindings for UltiSnipsExpandTrigger
 let g:UltiSnipsExpandTrigger = "<tab>"
@@ -207,6 +220,11 @@ let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
+
+let g:syntastic_mode_map = { 'passive_filetypes': ['python'] }
+let g:syntastic_skip_checks = 1
+let g:syntastic_c_compiler = 'clang_tidy'
+let g:syntastic_debug = 1
 
 if has("autocmd")
   autocmd FileType *
@@ -273,6 +291,11 @@ if has("autocmd")
   autocmd FileType vim setlocal tabstop=2
   autocmd FileType vim setlocal softtabstop=2
   autocmd FileType vim setlocal shiftwidth=2
+
+  autocmd FileType gitcommit setlocal tabstop=2
+  autocmd FileType gitcommit setlocal softtabstop=2
+  autocmd FileType gitcommit setlocal shiftwidth=2
+  autocmd FileType gitcommit setlocal textwidth=50
 endif
 
 "------------------------------------------------------------------------------"
@@ -309,7 +332,7 @@ nnoremap <Leader><Space>
 nnoremap <Leader>/ :execute "Unite" . unite_options . " line"<CR>
 
 nnoremap <Leader><Leader>
-  \ :execute "Unite" . unite_options . " file/async"<CR>
+  \ :execute "Unite" . unite_options . " file_rec/async"<CR>
 
 nnoremap <Leader>\| :vsplit<CR>
 nnoremap <Leader>- :split<CR>
