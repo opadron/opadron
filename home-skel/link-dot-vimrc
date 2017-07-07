@@ -158,6 +158,13 @@ function CycleSchemes()
   else
     execute "AirlineTheme " . airline_theme
   endif
+
+  if g:first_cycle_schemes_call == 0
+    redraw
+    echo "bg:" . background . " cs:" . colorscheme . " al:" . airline_theme
+  endif
+
+  let g:first_cycle_schemes_call=0
 endfunction
 
 call CycleSchemes()
