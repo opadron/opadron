@@ -9,6 +9,7 @@ export SCRIPTS="$HOME/.scripts"
 envpush PATH "$SCRIPTS"
 
 export LOCAL="$HOME/.local"
+push_install "$LOCAL"
 
 for dir in "$LOCAL"/* ; do
     if [ '!' -d "$dir" ] ; then

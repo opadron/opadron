@@ -73,3 +73,9 @@
 [submodule "home-skel/link-dot-vim-modules/gitgutter"]
 	path = home-skel/link-dot-vim-modules/gitgutter
 	url = git://github.com/airblade/vim-gitgutter
+[submodule "home-skel/link-dot-vim-modules/vim-lint"]
+	path = home-skel/link-dot-vim-modules/vim-lint
+	url = git://github.com/dbakker/vim-lint
+[submodule "packages/vim"]
+	path = packages/vim
+	url = git://github.com/vim/vim

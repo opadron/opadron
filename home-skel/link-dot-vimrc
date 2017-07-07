@@ -8,9 +8,8 @@ filetype off
 
 set rtp+=~/.vim/bundle/vundle.vim
 call vundle#begin()
-execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/airline'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/airline-themes'''
-execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/custom'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/airline'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/easymotion'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/gitgutter'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/indentline'''
@@ -18,18 +17,20 @@ execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/mac-classic'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/match-tag-always'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/sol'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/solarized'''
-execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/supertab'''
-execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/syntastic'''
-execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/ultisnips'''
-execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/unite'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/vim-json'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/vim-less'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/vim-lint'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/vim-css3-syntax'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/vimproc'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/virtualenv'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/vividchalk'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/yaml'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/supertab'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/ultisnips'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/unite'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/syntastic'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/youcompleteme'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/custom'''
 call vundle#end()
 
 "# BASIC OPTIONS ##############################################################"
