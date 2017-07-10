@@ -26,10 +26,10 @@ execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/virtualenv'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/vividchalk'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/yaml'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/supertab'''
-execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/ultisnips'''
+" execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/ultisnips'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/unite'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/syntastic'''
-execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/youcompleteme'''
+execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/neocomplete'''
 execute 'Plugin ' . '''file://' . $HOME . '/.vim-modules/custom'''
 call vundle#end()
 

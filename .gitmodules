@@ -79,3 +79,6 @@
 [submodule "packages/vim"]
 	path = packages/vim
 	url = git://github.com/vim/vim
+[submodule "home-skel/link-dot-vim-modules/neocomplete"]
+	path = home-skel/link-dot-vim-modules/neocomplete
+	url = git://github.com/shougo/neocomplete.vim
