@@ -63,3 +63,8 @@ Hostname www.osumo.org
 IdentityFile ~/.ssh/sumo
 User opadron
 
+Host qidw qidw.rsna.org
+Hostname qidw.rsna.org
+IdentityFile ~/.ssh/qidw
+User opadron
+
