@@ -68,3 +68,8 @@ Hostname qidw.rsna.org
 IdentityFile ~/.ssh/qidw
 User opadron
 
+Host kitware-gitlab2 kwgitlab.kitware.com
+Hostname kwgitlab.kitware.com
+IdentityFile ~/.ssh/kitware-gitlab2
+User git
+
