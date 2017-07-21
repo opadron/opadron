@@ -1,5 +1,8 @@
 
 Host *
+ControlMaster Auto
+ControlPath ~/.ssh/sockets/%r@%h-%p
+ControlPersist 600
 ServerAliveInterval 30
 ServerAliveCountMax 100
 

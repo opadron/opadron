@@ -141,3 +141,5 @@ done
     chmod 755 .
 )
 
+mkdir "$dst/.ssh/sockets"
+
