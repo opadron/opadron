@@ -76,3 +76,18 @@ Hostname kwgitlab.kitware.com
 IdentityFile ~/.ssh/kitware-gitlab2
 User git
 
+Host localhost
+Hostname localhost
+IdentityFile ~/.ssh/kitware-gitlab2
+User git
+
+Host vigilant1 vigilant1.kitware.com
+Hostname vigilant1.kitware.com
+IdentityFile ~/.ssh/vigilant1
+User omar.padron
+
+Host vigilant1 vigilant1.kitware.com
+Hostname vigilant1.kitware.com
+IdentityFile ~/.ssh/vigilant1
+User omar.padron
+
