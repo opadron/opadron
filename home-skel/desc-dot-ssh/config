@@ -76,3 +76,28 @@ Hostname kwgitlab.kitware.com
 IdentityFile ~/.ssh/kitware-gitlab2
 User git
 
+Host olcd olcd.kitware.com
+Hostname olcd.kitware.com
+IdentityFile ~/.ssh/olcd
+User omar.padron
+
+Host olcd olcd.kitware.com
+Hostname olcd.kitware.com
+IdentityFile ~/.ssh/olcd
+User omar.padron
+
+Host olcd olcd.kitware.com
+Hostname olcd.kitware.com
+IdentityFile ~/.ssh/olcd
+User omar.padron
+
+Host olcd olcd.kitware.com
+Hostname olcd.kitware.com
+IdentityFile ~/.ssh/olcd
+User omar.padron
+
+Host olcd olcd.kitware.com
+Hostname olcd.kitware.com
+IdentityFile ~/.ssh/olcd
+User omar.padron
+
