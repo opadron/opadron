@@ -46,6 +46,8 @@ typedef signed char schar;
 /* define extern extern */
 #define intern static
 
+#define CODE_BLOCK(...) do { __VA_ARGS__ } while(0)
+
 #ifndef DEBUG_LEVEL
 #   define DEBUG_LEVEL 1
 #endif
@@ -57,9 +59,16 @@ typedef signed char schar;
 #ifdef __no_debug__
 #   define debug(...)
 #   define ASSERT(EXPR)
+#   define __MARK__
 #else
 #   define debug(...) __debug__(__VA_ARGS__+0)
 #   define __debug__(N) if((N) == 0 || (N) < (DEBUG_LEVEL))
+
+#   include <stdio.h>
+#   define __MARK__ __MARK__0(__FILE__, __LINE__)
+#   define __MARK__0(F, L) CODE_BLOCK(         \
+        fprintf(stderr, "MARK %s %d\n", F, L); \
+    )
 
 #   include <assert.h>
 #   define ASSERT(EXPR) assert(EXPR)
@@ -95,78 +104,75 @@ typedef signed char schar;
                    _43,_44,_45,_46,_47,_48,_49,_50,_51,_52,_53,_54,_55,_56, \
                    _57,_58,_59,_60,_61,_62,_63,N,...) N
 
-#define CONCAT(A, B) CONCATa(A, B)
-#define CONCATa(A, B) A##B
-
 #define _CHECK(...) _CHECKa(__VA_ARGS__, 1,)
 #define _CHECKa(X, N, ...) N
 
-#define _NOT_ONE(X) _CHECK(CONCATa(_NOT_ONE_, X))
+#define _NOT_ONE(X) _CHECK(CONCAT_(_NOT_ONE_, X))
 #define _NOT_ONE_1 ~, 0,
 
-#define _COMPL(X) CONCATa(_COMPL_, X)
+#define _COMPL(X) CONCAT_(_COMPL_, X)
 #define _COMPL_0 1
 #define _COMPL_1 0
 
 #define IS_ONE(X) _COMPL(_NOT_ONE(X))
 
-#define CPP_DISPATCH(MACRO, MODE, ...) \
-    CPP_DISPATCHa(                     \
-        CONCAT(CPP_DISPATCH_, MODE),   \
-        MACRO,                         \
-        NUM_ARGS(__VA_ARGS__),         \
-        __VA_ARGS__                    \
+#define CPP_DISPATCH(MACRO, MODE, ...)  \
+    CPP_DISPATCHa(                      \
+        CONCAT_(CPP_DISPATCH_, MODE),   \
+        MACRO,                          \
+        NUM_ARGS(__VA_ARGS__),          \
+        __VA_ARGS__                     \
     )
 
 #define CPP_DISPATCHa(NEXT, MACRO, N, ...) NEXT(MACRO, N, __VA_ARGS__)
 
 #define CPP_DISPATCH_ENUM(MACRO, N, ...) \
-    CPP_DISPATCH_ENUMa(CONCAT(CONCAT(MACRO, _), N), __VA_ARGS__)
+    CPP_DISPATCH_ENUMa(CONCAT_(CONCAT_(MACRO, _), N), __VA_ARGS__)
 
 #define CPP_DISPATCH_ENUMa(NEXT, ...) NEXT(__VA_ARGS__)
 
-#define CPP_DISPATCH_MULTI(MACRO, N, ...)       \
-    CPP_DISPATCH_MULTIa(                        \
-        CONCAT(CPP_DISPATCH_MULTI_, IS_ONE(N)), \
-        MACRO,                                  \
-        N,                                      \
-        __VA_ARGS__                             \
+#define CPP_DISPATCH_MULTI(MACRO, N, ...)        \
+    CPP_DISPATCH_MULTIa(                         \
+        CONCAT_(CPP_DISPATCH_MULTI_, IS_ONE(N)), \
+        MACRO,                                   \
+        N,                                       \
+        __VA_ARGS__                              \
     )
 
 #define CPP_DISPATCH_MULTIa(NEXT, MACRO, N, ...) NEXT(MACRO, N, __VA_ARGS__)
 
 #define CPP_DISPATCH_MULTI_0(MACRO, N, ...) \
-    CPP_DISPATCH_MULTI_0a(CONCAT(MACRO, _MULTI), N, __VA_ARGS__)
+    CPP_DISPATCH_MULTI_0a(CONCAT_(MACRO, _MULTI), N, __VA_ARGS__)
 
 #define CPP_DISPATCH_MULTI_0a(NEXT, N, ...) NEXT(N, __VA_ARGS__)
 
 #define CPP_DISPATCH_MULTI_1(MACRO, N, ...) \
-    CPP_DISPATCH_MULTI_0a(CONCAT(MACRO, _SINGLE), N, __VA_ARGS__)
+    CPP_DISPATCH_MULTI_0a(CONCAT_(MACRO, _SINGLE), N, __VA_ARGS__)
 
 #define CPP_DISPATCH_MULTI_1a(NEXT, N, ...) NEXT(N, __VA_ARGS__)
 
 #define CONSTRUCTOR_DECL(...) CPP_DISPATCH(CONSTRUCTOR_DECL, MULTI, __VA_ARGS__)
 
-#define CONSTRUCTOR_DECL_SINGLE(TYPE)                      \
-    extern struct TYPE *CONCAT(TYPE, _init)(struct TYPE *)
+#define CONSTRUCTOR_DECL_SINGLE(TYPE) \
+    extern struct TYPE *CONCAT_(TYPE, _init)(struct TYPE *)
 
-#define CONSTRUCTOR_DECL_MULTI(TYPE, ...)                               \
-    extern struct TYPE *CONCAT(TYPE, _init)(struct TYPE *, __VA_ARGS__)
+#define CONSTRUCTOR_DECL_MULTI(TYPE, ...) \
+    extern struct TYPE *CONCAT_(TYPE, _init)(struct TYPE *, __VA_ARGS__)
 
-#define DESTRUCTOR_DECL(TYPE)                                  \
-    extern struct TYPE *CONCAT(TYPE, _finalize)(struct TYPE *)
+#define DESTRUCTOR_DECL(TYPE) \
+    extern struct TYPE *CONCAT_(TYPE, _finalize)(struct TYPE *)
 
 
 #define CONSTRUCTOR_DEF(...) CPP_DISPATCH(CONSTRUCTOR_DEF, MULTI, __VA_ARGS__)
 
-#define CONSTRUCTOR_DEF_SINGLE(TYPE)                   \
-    struct TYPE *CONCAT(TYPE, _init)(struct TYPE *self)
+#define CONSTRUCTOR_DEF_SINGLE(TYPE) \
+    struct TYPE *CONCAT_(TYPE, _init)(struct TYPE *self)
 
-#define CONSTRUCTOR_DEF_MULTI(TYPE, ...)                             \
-    struct TYPE *CONCAT(TYPE, _init)(struct TYPE *self, __VA_ARGS__)
+#define CONSTRUCTOR_DEF_MULTI(TYPE, ...) \
+    struct TYPE *CONCAT_(TYPE, _init)(struct TYPE *self, __VA_ARGS__)
 
-#define DESTRUCTOR_DEF(TYPE)                            \
-    struct TYPE *CONCAT(TYPE, _finalize)(struct TYPE *)
+#define DESTRUCTOR_DEF(TYPE) \
+    struct TYPE *CONCAT_(TYPE, _finalize)(struct TYPE *)
 
 #define ALLOC(...) CPP_DISPATCH(ALLOC, ENUM, __VA_ARGS__)
 
@@ -175,7 +181,7 @@ typedef signed char schar;
 #define ALLOC_3(OUT, COUNT, SIZE) _ALLOC_(OUT, COUNT,           SIZE)
 
 #define _ALLOC_(OUT, COUNT, SIZE) \
-    do { OUT = malloc((COUNT)*(SIZE)); } while(0)
+    CODE_BLOCK(OUT = malloc((COUNT)*(SIZE));)
 
 
 #define REALLOC(...) CPP_DISPATCH(REALLOC, ENUM, __VA_ARGS__)
@@ -185,7 +191,7 @@ typedef signed char schar;
 #define REALLOC_3(OUT, COUNT, SIZE) _REALLOC_(OUT, COUNT,           SIZE)
 
 #define _REALLOC_(OUT, COUNT, SIZE) \
-    do { OUT = realloc(OUT, (COUNT)*(SIZE)); } while(0)
+    CODE_BLOCK(OUT = realloc(OUT, (COUNT)*(SIZE));)
 
 
 #define CALLOC(...) CPP_DISPATCH(CALLOC, ENUM, __VA_ARGS__)
@@ -195,7 +201,7 @@ typedef signed char schar;
 #define CALLOC_3(OUT, COUNT, SIZE) _CALLOC_(OUT, COUNT,           SIZE)
 
 #define _CALLOC_(OUT, COUNT, SIZE) \
-    do { OUT = calloc((COUNT), (SIZE)); } while(0)
+    CODE_BLOCK(OUT = calloc((COUNT), (SIZE));)
 
 
 #define COPY(...) CPP_DISPATCH(COPY, ENUM, __VA_ARGS__)
@@ -205,7 +211,7 @@ typedef signed char schar;
 #define COPY_4(OUT, IN, COUNT, SIZE) _COPY_(OUT, IN, COUNT,           SIZE)
 
 #define _COPY_(OUT, IN, COUNT, SIZE) \
-    do { memcpy((OUT), (IN), (COUNT)*(SIZE)); } while(0)
+    CODE_BLOCK(memcpy((OUT), (IN), (COUNT)*(SIZE));)
 
 
 #define MOVE(...) CPP_DISPATCH(MOVE, ENUM, __VA_ARGS__)
@@ -215,10 +221,84 @@ typedef signed char schar;
 #define MOVE_4(OUT, IN, COUNT, SIZE) _MOVE_(OUT, IN, COUNT,           SIZE)
 
 #define _MOVE_(OUT, IN, COUNT, SIZE) \
-    do { memmove((OUT), (IN), (COUNT)*(SIZE)); } while(0)
+    CODE_BLOCK(memmove((OUT), (IN), (COUNT)*(SIZE));)
 
 
-#define FREE(...) do { CPP_DISPATCH(FREE, ENUM, __VA_ARGS__) } while(0)
+#define CONCAT(...) CPP_DISPATCH(CONCAT, ENUM, __VA_ARGS__)
+#define CONCAT_(A, B) CONCAT__(A, B)
+#define CONCAT__(A, B) A##B
+
+#define CONCAT_1(X) X
+#define CONCAT_2(X, ...) CONCAT_(X, CONCAT_1(__VA_ARGS__))
+#define CONCAT_3(X, ...) CONCAT_(X, CONCAT_2(__VA_ARGS__))
+#define CONCAT_4(X, ...) CONCAT_(X, CONCAT_3(__VA_ARGS__))
+#define CONCAT_5(X, ...) CONCAT_(X, CONCAT_4(__VA_ARGS__))
+#define CONCAT_6(X, ...) CONCAT_(X, CONCAT_5(__VA_ARGS__))
+#define CONCAT_7(X, ...) CONCAT_(X, CONCAT_6(__VA_ARGS__))
+#define CONCAT_8(X, ...) CONCAT_(X, CONCAT_7(__VA_ARGS__))
+#define CONCAT_9(X, ...) CONCAT_(X, CONCAT_8(__VA_ARGS__))
+
+#define CONCAT_10(X, ...) CONCAT_(X, CONCAT_9(__VA_ARGS__))
+#define CONCAT_11(X, ...) CONCAT_(X, CONCAT_10(__VA_ARGS__))
+#define CONCAT_12(X, ...) CONCAT_(X, CONCAT_11(__VA_ARGS__))
+#define CONCAT_13(X, ...) CONCAT_(X, CONCAT_12(__VA_ARGS__))
+#define CONCAT_14(X, ...) CONCAT_(X, CONCAT_13(__VA_ARGS__))
+#define CONCAT_15(X, ...) CONCAT_(X, CONCAT_14(__VA_ARGS__))
+#define CONCAT_16(X, ...) CONCAT_(X, CONCAT_15(__VA_ARGS__))
+#define CONCAT_17(X, ...) CONCAT_(X, CONCAT_16(__VA_ARGS__))
+#define CONCAT_18(X, ...) CONCAT_(X, CONCAT_17(__VA_ARGS__))
+#define CONCAT_19(X, ...) CONCAT_(X, CONCAT_18(__VA_ARGS__))
+
+#define CONCAT_20(X, ...) CONCAT_(X, CONCAT_19(__VA_ARGS__))
+#define CONCAT_21(X, ...) CONCAT_(X, CONCAT_20(__VA_ARGS__))
+#define CONCAT_22(X, ...) CONCAT_(X, CONCAT_21(__VA_ARGS__))
+#define CONCAT_23(X, ...) CONCAT_(X, CONCAT_22(__VA_ARGS__))
+#define CONCAT_24(X, ...) CONCAT_(X, CONCAT_23(__VA_ARGS__))
+#define CONCAT_25(X, ...) CONCAT_(X, CONCAT_24(__VA_ARGS__))
+#define CONCAT_26(X, ...) CONCAT_(X, CONCAT_25(__VA_ARGS__))
+#define CONCAT_27(X, ...) CONCAT_(X, CONCAT_26(__VA_ARGS__))
+#define CONCAT_28(X, ...) CONCAT_(X, CONCAT_27(__VA_ARGS__))
+#define CONCAT_29(X, ...) CONCAT_(X, CONCAT_28(__VA_ARGS__))
+
+#define CONCAT_30(X, ...) CONCAT_(X, CONCAT_29(__VA_ARGS__))
+#define CONCAT_31(X, ...) CONCAT_(X, CONCAT_30(__VA_ARGS__))
+#define CONCAT_32(X, ...) CONCAT_(X, CONCAT_31(__VA_ARGS__))
+#define CONCAT_33(X, ...) CONCAT_(X, CONCAT_32(__VA_ARGS__))
+#define CONCAT_34(X, ...) CONCAT_(X, CONCAT_33(__VA_ARGS__))
+#define CONCAT_35(X, ...) CONCAT_(X, CONCAT_34(__VA_ARGS__))
+#define CONCAT_36(X, ...) CONCAT_(X, CONCAT_35(__VA_ARGS__))
+#define CONCAT_37(X, ...) CONCAT_(X, CONCAT_36(__VA_ARGS__))
+#define CONCAT_38(X, ...) CONCAT_(X, CONCAT_37(__VA_ARGS__))
+#define CONCAT_39(X, ...) CONCAT_(X, CONCAT_38(__VA_ARGS__))
+
+#define CONCAT_40(X, ...) CONCAT_(X, CONCAT_39(__VA_ARGS__))
+#define CONCAT_41(X, ...) CONCAT_(X, CONCAT_40(__VA_ARGS__))
+#define CONCAT_42(X, ...) CONCAT_(X, CONCAT_41(__VA_ARGS__))
+#define CONCAT_43(X, ...) CONCAT_(X, CONCAT_42(__VA_ARGS__))
+#define CONCAT_44(X, ...) CONCAT_(X, CONCAT_43(__VA_ARGS__))
+#define CONCAT_45(X, ...) CONCAT_(X, CONCAT_44(__VA_ARGS__))
+#define CONCAT_46(X, ...) CONCAT_(X, CONCAT_45(__VA_ARGS__))
+#define CONCAT_47(X, ...) CONCAT_(X, CONCAT_46(__VA_ARGS__))
+#define CONCAT_48(X, ...) CONCAT_(X, CONCAT_47(__VA_ARGS__))
+#define CONCAT_49(X, ...) CONCAT_(X, CONCAT_48(__VA_ARGS__))
+
+#define CONCAT_50(X, ...) CONCAT_(X, CONCAT_49(__VA_ARGS__))
+#define CONCAT_51(X, ...) CONCAT_(X, CONCAT_50(__VA_ARGS__))
+#define CONCAT_52(X, ...) CONCAT_(X, CONCAT_51(__VA_ARGS__))
+#define CONCAT_53(X, ...) CONCAT_(X, CONCAT_52(__VA_ARGS__))
+#define CONCAT_54(X, ...) CONCAT_(X, CONCAT_53(__VA_ARGS__))
+#define CONCAT_55(X, ...) CONCAT_(X, CONCAT_54(__VA_ARGS__))
+#define CONCAT_56(X, ...) CONCAT_(X, CONCAT_55(__VA_ARGS__))
+#define CONCAT_57(X, ...) CONCAT_(X, CONCAT_56(__VA_ARGS__))
+#define CONCAT_58(X, ...) CONCAT_(X, CONCAT_57(__VA_ARGS__))
+#define CONCAT_59(X, ...) CONCAT_(X, CONCAT_58(__VA_ARGS__))
+
+#define CONCAT_60(X, ...) CONCAT(X, CONCAT_59(__VA_ARGS__))
+#define CONCAT_61(X, ...) CONCAT(X, CONCAT_60(__VA_ARGS__))
+#define CONCAT_62(X, ...) CONCAT(X, CONCAT_61(__VA_ARGS__))
+#define CONCAT_63(X, ...) CONCAT(X, CONCAT_62(__VA_ARGS__))
+
+#define FREE(...) CODE_BLOCK(CPP_DISPATCH(FREE, ENUM, __VA_ARGS__))
 
 #define FREE_1(X) free(X);
 #define FREE_2(X, ...) free(X); FREE_1(__VA_ARGS__)

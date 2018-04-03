@@ -343,7 +343,8 @@ nnoremap <Leader><Space>
 nnoremap <Leader>/ :execute "Unite" . unite_options . " line"<CR>
 
 nnoremap <Leader><Leader>
-  \ :execute "Unite" . unite_options . " file_rec/async"<CR>
+  \ :execute "Unite" . unite_options . " file/async"<CR>
+"   \ :execute "Unite" . unite_options . " file_rec/async"<CR>
 
 nnoremap <Leader>\| :vsplit<CR>
 nnoremap <Leader>- :split<CR>
