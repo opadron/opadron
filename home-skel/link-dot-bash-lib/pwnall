@@ -1,0 +1,37 @@
+#! /usr/bin/env bash
+
+if [ -z "$__pwnall" ] ; then __pwnall=1
+
+export PWNALL_FREQ=200
+
+__clear() {
+    # run the *real* clear
+    \clear
+
+    # bail early *unless* RANDOM *happens* to
+    # divide evenly with PWNALL_FREQ
+    if [ "$(( RANDOM % PWNALL_FREQ ))" '!=' '0' ] ; then
+        return
+    fi
+
+    (
+        # random number between 3 and 7
+        local number_of_a="$(( (RANDOM % 5) + 3 ))"
+
+        for i in $( seq $number_of_a ) ; do
+            if [ "$i" '=' '1' ] ; then
+                echo -n 'A'
+            else
+                echo -n 'a'
+            fi
+        done
+
+        echo -n "nd, it's gone"
+        echo '!'
+    ) | figlet | cowsay -n
+}
+
+alias clear='__clear'
+
+fi #!__pwnall_guard
+

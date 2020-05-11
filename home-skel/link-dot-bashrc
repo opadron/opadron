@@ -20,5 +20,7 @@ mload mac_coreutils
 mload tab_complete
 mload solarize
 
+mload pwnall
+
 fi # !__bashrc_guard
 
