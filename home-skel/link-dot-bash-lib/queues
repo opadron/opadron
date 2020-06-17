@@ -1,0 +1,66 @@
+#! /usr/bin/env bash
+
+if [ -z "$__queues_guard" ] ; then __queues_guard=1
+source "$HOME/.bash-lib/init"
+
+mload locks
+
+queue_init() {
+    local q="$1"
+    local interval="$2"
+    local num_attempts="$3"
+    local result
+
+    lock_acquire "$q" "$interval" "$num_attempts"
+    result="$?"
+
+    if [ "$result" '!=' '0' ] ; then
+        return $result
+    fi
+
+    (
+        set -e
+        lock_acquire "$q/read"
+        lock_acquire "$q/write"
+    )
+    result="$?"
+
+    return $result
+}
+
+queue_clear() {
+    lock_release "$1"
+    return $?
+}
+
+queue_acquire_read() {
+    lock_acquire "$1/read" "$2" "$3"
+    return $?
+}
+
+queue_acquire_write() {
+    lock_acquire "$1/write" "$2" "$3"
+    return $?
+}
+
+queue_make_readable() {
+    lock_release "$1/read"
+    return $?
+}
+
+queue_make_writable() {
+    lock_release "$1/write"
+    return $?
+}
+
+queue_read() {
+    cat "$1/contents" 2>/dev/null
+    return $?
+}
+
+queue_write() {
+    cat > "$1/contents" 2>/dev/null
+    return $?
+}
+
+fi #!__queues_guard

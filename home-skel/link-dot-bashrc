@@ -16,11 +16,12 @@ mload gpg_agent
 mload introspection
 mload local_rc_file
 mload mac_coreutils
-# mload prompt
+mload prompt
 mload tab_complete
 mload solarize
 
 mload pwnall
+mload sessions
 
 fi # !__bashrc_guard
 

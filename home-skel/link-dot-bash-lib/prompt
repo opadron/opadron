@@ -5,8 +5,10 @@ source "$HOME/.bash-lib/init"
 
 mload commonlib
 mload colors
-mload term_sequences
 mload preexec
+mload term_sequences
+mload tmp_dir
+mload queues
 
 function check_sum() {
     for com in md5 md5sum shasum ; do
@@ -25,172 +27,320 @@ __prompt_git_remote_status=
 __prompt_shell_level_flag=
 __prompt_right=
 
-function __compute_right_side_prompts() {
-    __prompt_right=()
+# PROMPT_COMMAND=__prompt_update
+
+preexec() {
+    echo -n "$TERM_COLORS_RESET"
+    term_clear_to_end
 }
 
-function __prompt_update() {
-    local x=
+__prompt_dir="$( tmp_dir )"
 
-    if [ -z "$__prompt_shell_level_flag" ] ; then
-        x=
-        x="${x}\[$TERM_COLORS_BOLD_BLUE\]("
-        x="${x}\[$TERM_COLORS_BLUE\]$SHLVL"
-        x="${x}\[$TERM_COLORS_BOLD_BLUE\])"
-        x="${x}\[$TERM_COLORS_RESET\]"
+__revparse_head() {
+    git rev-parse $@ HEAD 2>/dev/null
+    return $?
+}
 
-        __prompt_shell_level="$x"
-        __prompt_shell_level_flag=x
-    fi
+__print_subprompts() {
+    local -a subprompts
+    local -a subprompt_lengths
 
-    __prompt_number_of_jobs=
-    local x="$( echo $( jobs | wc -l | sed -e 's/ //g' ) )"
-    if [ "$x" '!=' '0' ] ; then
-        __prompt_number_of_jobs="($x)"
-    fi
-
-    __prompt_git_remote_status="$(
-        git status --branch --porcelain --ignore-submodules=dirty 2> /dev/null |
-        head -n 1 |
-        grep '\[\(ahead\|behind\) [0-9]\+\]' |
-        sed -e 's/^.*\(ahead\) \([0-9][0-9]*\).*$/+\2/g' |
-        sed -e 's/^.*\(behind\) \([0-9][0-9]*\).*$/-\2/g'
-    )"
-
-    __prompt_git_branch="$(
-        git branch 2> /dev/null |
-        sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'
-    )"
-
-    if [ -n "$__prompt_git_branch" ] ; then
-        x=
-        x="${x}git status"
-        x="${x} --porcelain"
-        x="${x} --ignore-submodules=dirty"
-
-        if $x 2> /dev/null | grep -q -v '^?? .*$'; then
-            __prompt_git_branch="${__prompt_git_branch}*"
-        fi
-    fi
-    __prompt_venv="$VIRTUAL_ENV"
-    if [ -n "$__prompt_venv" ] ; then
-        __prompt_venv="$( basename "$__prompt_venv" )"
-    fi
-
-
-    subprompt=""
-    botprompt=""
-    local subprompt_length=0
-
-    date_fmt="+$TERM_COLORS_BLUE%a $TERM_COLORS_RESET%d"
-    date_fmt="${date_fmt}$TERM_COLORS_RESET"
-    subprompt="${subprompt}$( date "$date_fmt" )"
-    subprompt_length="$(( subprompt_length + 6 ))"
+    local subprompt
+    local subprompt_length
 
     local hn="$( hostname )"
-    subprompt="${subprompt} $TERM_COLORS_CYAN$USER"
-    subprompt="${subprompt}$TERM_COLORS_BOLD_BLUE@"
-    subprompt="${subprompt}$TERM_COLORS_BLUE$hn"
+    subprompt="${subprompt}$TERM_COLORS_BOLD_CYAN["
+    subprompt="${subprompt}$TERM_COLORS_CYAN$USER"
+    subprompt="${subprompt}$TERM_COLORS_BOLD_CYAN@"
+    subprompt="${subprompt}$TERM_COLORS_BOLD_BLUE$hn"
+    subprompt="${subprompt}$TERM_COLORS_BOLD_CYAN]"
     subprompt="${subprompt}$TERM_COLORS_RESET"
 
-    subprompt_length="$(( subprompt_length + ${#USER} + ${#hn} + 2 ))"
+    subprompt_length="$(( ${#USER} + ${#hn} + 3 ))"
 
-    if [ "$( pwd )" '!=' "$HOME" ] ; then
-        local cwd="$( basename "$( pwd )" )"
-        subprompt="${subprompt} $TERM_COLORS_BOLD_GREEN["
-        subprompt="${subprompt}$TERM_COLORS_GREEN$cwd"
-        subprompt="${subprompt}$TERM_COLORS_BOLD_GREEN]"
-        subprompt="${subprompt}$TERM_COLORS_RESET"
+    subprompts[${#subprompts[@]}]="$subprompt"
+    subprompt_lengths[${#subprompt_lengths[@]}]="$subprompt_length"
 
-        subprompt_length="$(( subprompt_length + ${#cwd} + 3 ))"
-    fi
 
-    if [ -n "$__prompt_git_branch" ] ; then
-        subprompt="${subprompt} $TERM_COLORS_BOLD_RED("
-        subprompt="${subprompt}$TERM_COLORS_RED$__prompt_git_branch"
+    queue_acquire_read "$__prompt_dir/git-head"
+    local git_head="$( queue_read "$__prompt_dir/git-head" )"
 
-        subprompt_length="$(( subprompt_length + ${#__prompt_git_branch} + 3 ))"
+    queue_acquire_read "$__prompt_dir/git-remote-status"
+    local git_remote_status="$( queue_read "$__prompt_dir/git-remote-status" )"
 
-        if [ -n "$__prompt_git_remote_status" ] ; then
+    if [ -n "$git_head" ] ; then
+        subprompt="$TERM_COLORS_BOLD_RED("
+        subprompt="${subprompt}$TERM_COLORS_RED$git_head"
+
+        subprompt_length="$(( ${#git_head} + 2 ))"
+
+        if [ -n "$git_remote_status" ] ; then
             subprompt="${subprompt}: "
             subprompt="${subprompt}$TERM_COLORS_YELLOW"
-            subprompt="${subprompt}${__prompt_git_remote_status::1}"
+            subprompt="${subprompt}${git_remote_status::1}"
             subprompt="${subprompt}$TERM_COLORS_BOLD_YELLOW"
-            subprompt="${subprompt}${__prompt_git_remote_status:1}"
+            subprompt="${subprompt}${git_remote_status:1}"
 
-            subprompt_length="$(( subprompt_length +
-                                  ${#__prompt_git_remote_status} ))"
+        subprompt_length="$((
+            subprompt_length + ${git_remote_status} + 2))"
         fi
 
         subprompt="${subprompt}$TERM_COLORS_BOLD_RED)"
         subprompt="${subprompt}$TERM_COLORS_RESET"
+
+        subprompts[${#subprompts[@]}]="$subprompt"
+        subprompt_lengths[${#subprompt_lengths[@]}]="$subprompt_length"
     fi
 
-    if [ -n "$__prompt_venv" ] ; then
-        subprompt="${subprompt} $TERM_COLORS_BOLD_CYAN(\$"
-        subprompt="${subprompt}$TERM_COLORS_CYAN"
-        subprompt="${subprompt}$__prompt_venv"
-        subprompt="${subprompt}$TERM_COLORS_BOLD_CYAN)"
+    queue_acquire_read "$__prompt_dir/py-venv"
+    local py_venv="$( queue_read "$__prompt_dir/py-venv" )"
+    if [ -n "$py_venv" ] ; then
+        subprompt="$TERM_COLORS_BOLD_GREEN(\$"
+        subprompt="${subprompt}$TERM_COLORS_GREEN"
+        subprompt="${subprompt}$py_venv"
+        subprompt="${subprompt}$TERM_COLORS_BOLD_GREEN)"
         subprompt="${subprompt}$TERM_COLORS_RESET"
 
-        subprompt_length="$(( subprompt_length + ${#__prompt_venv} + 4 ))"
+        subprompt_length="$(( subprompt_length + ${#py_venv} + 3 ))"
+
+        subprompts[${#subprompts[@]}]="$subprompt"
+        subprompt_lengths[${#subprompt_lengths[@]}]="$subprompt_length"
     fi
 
     botprompt="$( pwd )"
 
 
     term_clear_to_end
+    echo
+    for p in "${subprompts[@]}" ; do
+        echo
+    done
+
+    term_cursor_up
+    for p in "${subprompts[@]}" ; do
+        term_cursor_up
+    done
 
     term_cursor_save
-    term_cursor_last_line
-    term_clear_right
+    term_cursor_down
+
+    for p in "${subprompts[@]}" ; do
+        echo "$p"
+    done
     echo -n "$botprompt"
     term_cursor_restore
 
     local n_term="$( term_get_width )"
     local n_padding="$(( n_term - subprompt_length - 10 ))"
+}
 
-    term_clear_right
-    if [ "$(( n_padding < 0 ))" '!=' '0' ] ; then
-        echo "$subprompt"
-    else
-        if [ "$(( n_padding > 30 ))" '!=' '0' ] ; then
-            n_padding=30
-        fi
-
-        term_cursor_save
-        term_cursor_right $(( n_padding + 10 ))
-        echo -n "$subprompt"
-        term_cursor_restore
-    fi
-
-    # PS1="${PS1}$__prompt_shell_level"
-    # PS1="${PS1}$__prompt_number_of_jobs"
-
-    PS1=""
-    PS1="\\[$TERM_COLORS_BOLD_RED\\]"
-    PS1="${PS1}\\[$( echo -e '\xce' )\\]"
-    PS1="${PS1}$( echo -e '\x94' )"
-    PS1="${PS1}\\[$TERM_COLORS_RESET\\] "
+__update_prompt() {
+    local prompt=""
+    prompt="\\[$TERM_COLORS_BOLD_YELLOW\\]"
+    prompt="${prompt}\\[$( echo -e '\xce' )\\]"
+    prompt="${prompt}$( echo -e '\x94' )"
+    prompt="${prompt}\\[$TERM_COLORS_RESET\\] "
 
     if [ "$USER" '=' 'root' ] ; then
-        PS1=""
-        PS1="${PS1}\\[$TERM_COLORS_RESET\\]"
-        PS1="${PS1}\\[$( echo -e '\x1b[1;7;31m' )\\]"
-        PS1="${PS1}\\[$( echo -e '\xc2' )\\]"
-        PS1="${PS1}$( echo -e '\xae' )"
-        PS1="${PS1}\\[$TERM_COLORS_RESET\\] "
-        PS1="${PS1}\\[$( echo -e '\x1b[1;5;7;31m' )\\]"
-        PS1="${PS1}\\[$TERM_COLORS_BOLD_RED\\]"
+        prompt=""
+        prompt="${prompt}\\[$TERM_COLORS_RESET\\]"
+        prompt="${prompt}\\[$( echo -e '\x1b[1;7;31m' )\\]"
+        prompt="${prompt}\\[$( echo -e '\xe2' )\\]"
+        prompt="${prompt}$( echo -e '\x88' )"
+        prompt="${prompt}$( echo -e '\x9a' )"
+        prompt="${prompt}\\[$TERM_COLORS_RESET\\] "
+        prompt="${prompt}\\[$( echo -e '\x1b[1;5;7;31m' )\\]"
+        prompt="${prompt}\\[$TERM_COLORS_BOLD_RED\\]"
     fi
+
+    echo "$prompt" | queue_write "$__prompt_dir/prompt"
 }
 
-export PROMPT_COMMAND=__prompt_update
+__update_git() {
+    local x=
 
-preexec() {
-    echo -n "$TERM_COLORS_RESET"
-    term_clear_to_end
+    local git_head="$( __revparse_head --abbrev-ref )"
+    local git_remote_status
+
+    if [ "$?" '=' '0' ] ; then
+        if [ "$git_head" '=' 'HEAD' ] ; then
+            git_head="$( __revparse_head | cut -c1-8 )..."
+            git_remote_status='x'
+        fi
+    fi
+
+    if [ "$git_remote_status" '=' 'x' ] ; then
+        git_remote_status=''
+    else
+        git_remote_status="$(
+            git status --branch --porcelain --ignore-submodules=dirty 2> /dev/null |
+            head -n 1 |
+            grep '\[\(ahead\|behind\) [0-9]\+\]' |
+            sed -e 's/^.*\(ahead\) \([0-9][0-9]*\).*$/+\2/g' |
+            sed -e 's/^.*\(behind\) \([0-9][0-9]*\).*$/-\2/g'
+        )"
+    fi
+
+    if [ -n "$git_head" ] ; then
+        x=
+        x="${x}git status"
+        x="${x} --porcelain"
+        x="${x} --ignore-submodules=dirty"
+
+        if $x 2> /dev/null | grep -q -v '^?? .*$'; then
+            git_head="${git_head}*"
+        fi
+    fi
+
+    echo "$git_head" | queue_write "$__prompt_dir/git-head"
+    echo "$git_remote_status" | queue_write "$__prompt_dir/git-remote-status"
 }
+
+__update_py_venv() {
+    local py_venv="$VIRTUAL_ENV"
+    if [ -n "$py_venv" ] ; then
+        py_venv="$( basename "$py_venv" )"
+    fi
+
+    echo "$py_venv" | queue_write "$__prompt_dir/py-venv"
+}
+
+(
+    set -m
+    (
+        queue_init "$__prompt_dir/query"
+        queue_init "$__prompt_dir/prompt"
+
+        __update_prompt
+        queue_make_readable "$__prompt_dir/prompt"
+
+        queue_make_writable "$__prompt_dir/query"
+
+        local q_time
+        local last_q_time
+
+        while true ; do
+            last_q_time=''
+
+            while true ; do
+                q_time="`date +%s%N`"
+
+                if queue_acquire_read "$__prompt_dir/query" 0.010 100; then
+                    last_q_time="$q_time"
+                    cd "$( queue_read "$__prompt_dir/query" )"
+                    queue_make_writable "$__prompt_dir/query"
+                fi
+
+                if [ -n "$last_q_time" -a \
+                    "$(( (q_time - last_q_time)/10000000 ))" -gt '100' ] ; then
+                    break
+                fi
+            done
+
+            __update_prompt
+            queue_make_readable "$__prompt_dir/prompt"
+        done
+    ) &>/dev/null &
+    (
+        queue_init "$__prompt_dir/query"
+        queue_init "$__prompt_dir/git-head"
+        queue_init "$__prompt_dir/git-remote-status"
+
+        __update_git
+        queue_make_readable "$__prompt_dir/git-head"
+        queue_make_readable "$__prompt_dir/git-remote-status"
+
+        queue_make_writable "$__prompt_dir/query"
+
+        local q_time
+        local last_q_time
+
+        while true ; do
+            last_q_time=''
+
+            while true ; do
+                q_time="`date +%s%N`"
+
+                if queue_acquire_read "$__prompt_dir/query" 0.010 100; then
+                    last_q_time="$q_time"
+                    cd "$( queue_read "$__prompt_dir/query" )"
+                    queue_make_writable "$__prompt_dir/query"
+                fi
+
+                if [ -n "$last_q_time" -a \
+                    "$(( (q_time - last_q_time)/10000000 ))" -gt '100' ] ; then
+                    break
+                fi
+            done
+
+            __update_git
+            queue_make_readable "$__prompt_dir/git-head"
+            queue_make_readable "$__prompt_dir/git-remote-status"
+        done
+    ) &>/dev/null &
+    (
+        queue_init "$__prompt_dir/query"
+        queue_init "$__prompt_dir/py-venv"
+
+        __update_py_venv
+        queue_make_readable "$__prompt_dir/py-venv"
+
+        queue_make_writable "$__prompt_dir/query"
+
+        local q_time
+        local last_q_time
+
+        while true ; do
+            last_q_time=''
+
+            while true ; do
+                q_time="`date +%s%N`"
+
+                if queue_acquire_read "$__prompt_dir/query" 0.010 100; then
+                    last_q_time="$q_time"
+                    cd "$( queue_read "$__prompt_dir/query" )"
+                    queue_make_writable "$__prompt_dir/query"
+                fi
+
+                if [ -n "$last_q_time" -a \
+                    "$(( (q_time - last_q_time)/10000000 ))" -gt '100' ] ; then
+                    break
+                fi
+            done
+
+            __update_py_venv
+            queue_make_readable "$__prompt_dir/py-venv"
+        done
+    ) &>/dev/null &
+)
+
+__update_prompt_main_first_call=1
+__update_prompt_main() {
+    if [ "$__update_prompt_main_first_call" '=' '1' ] ; then
+        local q
+        for q in prompt git-head git-remote-status py-venv ; do
+            until queue_acquire_read "$__prompt_dir/$q" 0.010 100 ; do
+                true
+            done
+        done
+
+        PS1="$( queue_read "$__prompt_dir/prompt" )"
+        __update_prompt_main_first_call=0
+    else
+        if queue_acquire_read "$__prompt_dir/prompt" ; then
+            PS1="$( queue_read "$__prompt_dir/prompt" )"
+        fi
+    fi
+
+    if queue_acquire_write "$__prompt_dir/query" ; then
+        pwd | queue_write "$__prompt_dir/query"
+        queue_make_readable "$__prompt_dir/query"
+    fi
+
+    __print_subprompts
+}
+
+PROMPT_COMMAND=__update_prompt_main
 
 fi #!__prompt_guard
 

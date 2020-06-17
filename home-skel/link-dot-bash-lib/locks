@@ -1,0 +1,52 @@
+#! /usr/bin/env bash
+
+if [ -z "$__locks_guard" ] ; then __locks_guard=1
+source "$HOME/.bash-lib/init"
+
+lock_try() {
+    local dir="$1"
+    mkdir "$dir" &>/dev/null
+    return $?
+}
+
+lock_acquire() {
+    local dir="$1"
+    local interval="$2"
+    local num_attempts="$3"
+
+    if [ -z "$interval" ] ; then
+        interval=0
+    fi
+
+    if [ -z "$num_attempts" ] ; then
+        num_attempts=0
+    fi
+
+    local counter=0
+    local result
+    while true ; do
+        if [ "$counter" -ge "$num_attempts" ] ; then
+            break
+        fi
+
+        lock_try "$dir"
+        result="$?"
+        if [ "$result" '=' 0 ] ; then
+            return $result
+        fi
+
+        counter="$(( counter + 1 ))"
+        sleep "$interval"
+    done
+
+    lock_try "$dir"
+    return $?
+}
+
+lock_release() {
+    local dir="$1"
+    rm -r "$dir" &>/dev/null
+    return $?
+}
+
+fi #!__locks_guard

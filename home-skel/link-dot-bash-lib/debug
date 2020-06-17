@@ -1,0 +1,18 @@
+#! /usr/bin/env bash
+
+if [ -z "$__debug_guard" ] ; then __debug_guard=1
+source "$HOME/.bash-lib/init"
+
+debug() {
+    if [ -z "$*" ] ; then
+        [ -n "$DEBUG" ]
+        return $?
+    fi
+
+    if debug ; then
+        echo -n "DEBUG:: "
+        echo "$@"
+    fi
+}
+
+fi #!__debug_guard

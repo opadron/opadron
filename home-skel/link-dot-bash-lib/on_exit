@@ -1,0 +1,46 @@
+#! /usr/bin/env bash
+
+if [ -z "$__on_exit_guard" ] ; then __on_exit_guard=1
+source "$HOME/.bash-lib/init"
+
+declare -a __exit_callbacks
+
+on_exit() {
+    __exit_callbacks[${#__exit_callbacks[@]}]="$@"
+}
+
+__exit_wrapper() {
+    if [ -z "$exit_code" ] ; then
+        exit_code="$1"
+        if [ -z "$exit_code" ] ; then
+            exit_code=0
+        fi
+        local n
+        n=${#__exit_callbacks[@]}
+        for ((; n--; )) ; do
+            eval "${__exit_callbacks[$n]}"
+        done
+    fi
+}
+
+__exec_wrapper() {
+    __exit_wrapper 0
+    \exec "$@"
+}
+
+# Don't trap SIGINT if bash is interactive
+if [ -t 0 ] ; then
+    __signals="TERM QUIT"
+else
+    __signals="INT TERM QUIT"
+fi
+
+trap "__exit_wrapper 1; \\exit $exit_code" $__signals
+trap "__exit_wrapper 0; \\exit $exit_code" EXIT
+
+unset __signals
+
+alias exit='__exit_wrapper ; exit'
+alias exec=__exec_wrapper
+
+fi #!__on_exit_guard

@@ -30,7 +30,7 @@ if [ -z "$MERGED" ] ; then # regular diff
     LCONFL="${LOCAL}.$$.tmp"
     cat "${LOCAL}" > "${LCONFL}"
     trap 'rm -f "'"${LCONFL}"'"' SIGINT SIGTERM EXIT
-    vimdiff -f -d "${LCONFL}" "${REMOTE}"
+    nvim -d "${LCONFL}" "${REMOTE}"
     exit_code="$?"
     # Overwrite $MERGED only if vimdiff exits cleanly.
     if [[ $exit_code  == "0" ]] ; then
@@ -53,7 +53,7 @@ else
     sed -e '/^=======$/,/^>>>>>>> /d' -e '/^<<<<<<< /d' "${MERGED}" > "${RCONFL}"
 
     # Fire up vimdiff
-    vimdiff -f -R -d "${LCONFL}" "${RCONFL}" -c ":set noro"
+    nvim -d "${LCONFL}" "${RCONFL}"
     #         -c ":tabe $QLOCAL" \
     #         -c ":vert diffs $QBASE" \
     #         -c ":vert diffs $QREMOTE" \
