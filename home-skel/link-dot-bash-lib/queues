@@ -1,8 +1,5 @@
 #! /usr/bin/env bash
 
-if [ -z "$__queues_guard" ] ; then __queues_guard=1
-source "$HOME/.bash-lib/init"
-
 mload locks
 
 queue_init() {
@@ -62,5 +59,3 @@ queue_write() {
     cat > "$1/contents" 2>/dev/null
     return $?
 }
-
-fi #!__queues_guard

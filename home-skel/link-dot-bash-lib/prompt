@@ -1,8 +1,5 @@
 #! /usr/bin/env bash
 
-if [ -z "$__prompt_guard" ] ; then __prompt_guard=1
-source "$HOME/.bash-lib/init"
-
 mload commonlib
 mload colors
 mload preexec
@@ -30,14 +27,50 @@ __prompt_right=
 # PROMPT_COMMAND=__prompt_update
 
 preexec() {
+    if [ "$__update_prompt_main_called" '=' 0 ] ; then
+        return
+    fi
+    __update_prompt_main_called=0
+
+    local com="$@"
+
+    if [ -z "$com" -o "${com:0:5}" '=' 'clear' ] ; then
+        return
+    fi
+
+    return
+
+    local n="${#com}"
+
+    local nlines=$(( (n - 1)/COLUMNS + 1 ))
+    local ncols=$(( n % COLUMNS ))
+    local i
+
+    for ((i=0;i<nlines;++i)) ; do
+        term_cursor_up
+    done
+
+    term_cursor_left "$(( ncols + 20 ))"
+
     echo -n "$TERM_COLORS_RESET"
+    echo -ne '\x1b[0;7m'
     term_clear_to_end
+    if [ "$n" -gt "$COLUMNS" ] ; then
+        n="$(( COLUMNS - 3 ))"
+        com="${com:0:$n}..."
+    else
+        for ((i=n;i<COLUMNS;++i)) ; do
+            com="${com} "
+        done
+    fi
+    echo "$com"
+    echo -n "$TERM_COLORS_RESET"
 }
 
 __prompt_dir="$( tmp_dir )"
 
 __revparse_head() {
-    git rev-parse $@ HEAD 2>/dev/null
+    GIT_OPTIONAL_LOCKS=0 git rev-parse $@ HEAD 2>/dev/null
     return $?
 }
 
@@ -109,7 +142,6 @@ __print_subprompts() {
 
     botprompt="$( pwd )"
 
-
     term_clear_to_end
     echo
     for p in "${subprompts[@]}" ; do
@@ -121,14 +153,17 @@ __print_subprompts() {
         term_cursor_up
     done
 
-    term_cursor_save
     term_cursor_down
-
     for p in "${subprompts[@]}" ; do
         echo "$p"
     done
     echo -n "$botprompt"
-    term_cursor_restore
+    echo -ne '\r'
+
+    term_cursor_up
+    for p in "${subprompts[@]}" ; do
+        term_cursor_up
+    done
 
     local n_term="$( term_get_width )"
     local n_padding="$(( n_term - subprompt_length - 10 ))"
@@ -137,9 +172,12 @@ __print_subprompts() {
 __update_prompt() {
     local prompt=""
     prompt="\\[$TERM_COLORS_BOLD_YELLOW\\]"
-    prompt="${prompt}\\[$( echo -e '\xce' )\\]"
-    prompt="${prompt}$( echo -e '\x94' )"
-    prompt="${prompt}\\[$TERM_COLORS_RESET\\] "
+    # prompt="${prompt}\\[$( echo -e '\xce' )\\]"
+    # prompt="${prompt}$( echo -e '\x94' )"
+    prompt="${prompt}\\[$( echo -e '\xe2' )\\]"
+    prompt="${prompt}$( echo -e '\x96' )"
+    prompt="${prompt}\\[$( echo -e '\xb6' )\\]"
+    prompt="${prompt}\\[$TERM_COLORS_RESET\\]  "
 
     if [ "$USER" '=' 'root' ] ; then
         prompt=""
@@ -154,6 +192,14 @@ __update_prompt() {
     fi
 
     echo "$prompt" | queue_write "$__prompt_dir/prompt"
+
+    prompt="\\[$( term_clear_right )\\] "
+    prompt="${prompt}\\[$TERM_COLORS_BOLD_YELLOW\\]"
+    prompt="${prompt}\\[$( echo -e '\xe2' )\\]"
+    prompt="${prompt}$( echo -e '\x96' )"
+    prompt="${prompt}\\[$( echo -e '\xb7' )\\]"
+    prompt="${prompt}\\[$TERM_COLORS_RESET\\] "
+    echo "$prompt" | queue_write "$__prompt_dir/prompt2"
 }
 
 __update_git() {
@@ -173,7 +219,9 @@ __update_git() {
         git_remote_status=''
     else
         git_remote_status="$(
-            git status --branch --porcelain --ignore-submodules=dirty 2> /dev/null |
+            GIT_OPTIONAL_LOCKS=0 git \
+                status --branch --porcelain --ignore-submodules=dirty \
+                    2> /dev/null |
             head -n 1 |
             grep '\[\(ahead\|behind\) [0-9]\+\]' |
             sed -e 's/^.*\(ahead\) \([0-9][0-9]*\).*$/+\2/g' |
@@ -182,8 +230,8 @@ __update_git() {
     fi
 
     if [ -n "$git_head" ] ; then
-        x=
-        x="${x}git status"
+        x='GIT_OPTIONAL_LOCKS=0'
+        x="${x} git status"
         x="${x} --porcelain"
         x="${x} --ignore-submodules=dirty"
 
@@ -210,9 +258,11 @@ __update_py_venv() {
     (
         queue_init "$__prompt_dir/query"
         queue_init "$__prompt_dir/prompt"
+        queue_init "$__prompt_dir/prompt2"
 
         __update_prompt
         queue_make_readable "$__prompt_dir/prompt"
+        queue_make_readable "$__prompt_dir/prompt2"
 
         queue_make_writable "$__prompt_dir/query"
 
@@ -223,7 +273,8 @@ __update_py_venv() {
             last_q_time=''
 
             while true ; do
-                q_time="`date +%s%N`"
+                q_time="$( date +%s%N )"
+
 
                 if queue_acquire_read "$__prompt_dir/query" 0.010 100; then
                     last_q_time="$q_time"
@@ -239,6 +290,7 @@ __update_py_venv() {
 
             __update_prompt
             queue_make_readable "$__prompt_dir/prompt"
+            queue_make_readable "$__prompt_dir/prompt2"
         done
     ) &>/dev/null &
     (
@@ -259,7 +311,7 @@ __update_py_venv() {
             last_q_time=''
 
             while true ; do
-                q_time="`date +%s%N`"
+                q_time="$( date +%s%N )"
 
                 if queue_acquire_read "$__prompt_dir/query" 0.010 100; then
                     last_q_time="$q_time"
@@ -294,7 +346,7 @@ __update_py_venv() {
             last_q_time=''
 
             while true ; do
-                q_time="`date +%s%N`"
+                q_time="$( date +%s%N )"
 
                 if queue_acquire_read "$__prompt_dir/query" 0.010 100; then
                     last_q_time="$q_time"
@@ -314,33 +366,44 @@ __update_py_venv() {
     ) &>/dev/null &
 )
 
+__update_prompt_main_called=0
 __update_prompt_main_first_call=1
 __update_prompt_main() {
-    if [ "$__update_prompt_main_first_call" '=' '1' ] ; then
-        local q
-        for q in prompt git-head git-remote-status py-venv ; do
-            until queue_acquire_read "$__prompt_dir/$q" 0.010 100 ; do
-                true
+    local time="$( date +%s%N )"
+    if [ -z "$__last_upm_time" -o \
+        "$(( (time - __last_upm_time)/10000000 ))" -gt '100' ]
+    then
+        __last_upm_time="$time"
+        __update_prompt_main_called=1
+        if [ "$__update_prompt_main_first_call" '=' '1' ] ; then
+            local q
+            for q in prompt git-head git-remote-status py-venv ; do
+                until queue_acquire_read "$__prompt_dir/$q" 0.010 100 ; do
+                    true
+                done
             done
-        done
 
-        PS1="$( queue_read "$__prompt_dir/prompt" )"
-        __update_prompt_main_first_call=0
-    else
-        if queue_acquire_read "$__prompt_dir/prompt" ; then
             PS1="$( queue_read "$__prompt_dir/prompt" )"
+            PS2="$( queue_read "$__prompt_dir/prompt2" )"
+            __update_prompt_main_first_call=0
+        else
+            if queue_acquire_read "$__prompt_dir/prompt" ; then
+                PS1="$( queue_read "$__prompt_dir/prompt" )"
+            fi
+            if queue_acquire_read "$__prompt_dir/prompt2" ; then
+                PS2="$( queue_read "$__prompt_dir/prompt2" )"
+            fi
         fi
-    fi
 
-    if queue_acquire_write "$__prompt_dir/query" ; then
-        pwd | queue_write "$__prompt_dir/query"
-        queue_make_readable "$__prompt_dir/query"
+        if queue_acquire_write "$__prompt_dir/query" ; then
+            pwd | queue_write "$__prompt_dir/query"
+            queue_make_readable "$__prompt_dir/query"
+        fi
     fi
 
     __print_subprompts
 }
 
-PROMPT_COMMAND=__update_prompt_main
-
-fi #!__prompt_guard
-
+if [ -z "$DISABLE_PROMPT" ] ; then
+    PROMPT_COMMAND=__update_prompt_main
+fi

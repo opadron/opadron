@@ -1,7 +1,5 @@
 #! /usr/bin/env bash
 
-if [ -z "$__docker_machine_guard" ] ; then __docker_machine_guard=1
-
 mload commonlib
 
 if [ "$INTROSPECT_PLATFORM" = 'MAC' ] ; then
@@ -9,6 +7,4 @@ if [ "$INTROSPECT_PLATFORM" = 'MAC' ] ; then
         eval "$( docker-machine env default )"
     fi
 fi
-
-fi # !__docker_machine_guard
 

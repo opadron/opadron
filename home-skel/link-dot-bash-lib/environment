@@ -1,8 +1,5 @@
 #! /usr/bin/env bash
 
-if [ -z "$__environment_guard" ] ; then __environment_guard=1
-source "$HOME/.bash-lib/init"
-
 mload commonlib
 
 export SCRIPTS="$HOME/.scripts"
@@ -33,6 +30,3 @@ done
 
 export EDITOR='vim'
 export PYTHONSTARTUP="$HOME/.pythonrc.py"
-
-fi #!__environment_guard
-

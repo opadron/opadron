@@ -1,8 +1,5 @@
 #! /usr/bin/env bash
 
-if [ -z "$__nvm_guard" ] ; then __nvm_guard=1
-source "$HOME/.bash-lib/init"
-
 export NVM_DIR="$HOME/.nvm"
 
 if [ '!' -d "$NVM_DIR" ] ; then
@@ -12,5 +9,3 @@ if [ '!' -d "$NVM_DIR" ] ; then
 fi
 
 . "$NVM_DIR/nvm.sh"
-
-fi #!__nvm_guard

@@ -1,13 +1,8 @@
 #! /usr/bin/env bash
 
-if [ -z "$__aliases_guard" ] ; then __aliases_guard=1
-source "$HOME/.bash-lib/init"
-
 mload commonlib
 mload introspection
 
 alias ls="ls -F --color=auto"
 alias vi='vim'
-
-fi #!__aliases_guard
-
+alias lrs='less -RS'

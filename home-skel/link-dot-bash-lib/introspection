@@ -1,11 +1,5 @@
 #! /usr/bin/env bash
 
-if [ -z "$__introspection_guard" ] ; then __introspection_guard=1
-source "$HOME/.bash-lib/init"
-
 mload commonlib
 
 INTROSPECT_PLATFORM="$( platform )"
-
-fi #!__introspection_guard
-

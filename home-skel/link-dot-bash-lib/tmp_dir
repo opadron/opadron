@@ -1,8 +1,5 @@
 #! /usr/bin/env bash
 
-if [ -z "$__tmp_dir_guard" ] ; then __tmp_dir_guard=1
-source "$HOME/.bash-lib/init"
-
 mload on_exit
 
 declare -a __tmp_dirs
@@ -42,5 +39,3 @@ tmp_dir() {
         echo "$tmpdir"
     fi
 }
-
-fi #!__tmp_dir_guard

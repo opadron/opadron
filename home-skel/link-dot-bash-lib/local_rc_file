@@ -1,12 +1,6 @@
 #! /usr/bin/env bash
 
-if [ -z "$__local_rc_file_guard" ] ; then __local_rc_file_guard=1
-source "$HOME/.bash-lib/init"
-
 local_rc_file="$HOME/.bashrc.local"
 if [ -f "$local_rc_file" ] ; then
     source "$local_rc_file"
 fi
-
-fi #!__local_rc_file_guard
-

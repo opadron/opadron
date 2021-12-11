@@ -1,8 +1,5 @@
 #! /usr/bin/env bash
 
-if [ -z "$__term_sequences_guard" ] ; then __term_sequences_guard=1
-source "$HOME/.bash-lib/init"
-
 function term_cursor_save {
     tput sc
 }
@@ -36,12 +33,12 @@ function term_cursor_up {
 }
 
 function term_cursor_left {
-    n="$1" ; if [ -z "$n" ] ; then n=1 ; fi
+    local n="$1" ; if [ -z "$n" ] ; then n=1 ; fi
     tput cub $n
 }
 
 function term_cursor_right {
-    n="$1" ; if [ -z "$n" ] ; then n=1 ; fi
+    local n="$1" ; if [ -z "$n" ] ; then n=1 ; fi
     tput cuf $n
 }
 
@@ -76,6 +73,3 @@ function term_clear_to_end {
 function term_clear_all {
     tput ed
 }
-
-fi #!__term_sequences_guard
-

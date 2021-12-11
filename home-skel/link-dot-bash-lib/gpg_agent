@@ -1,8 +1,5 @@
 #! /usr/bin/env bash
 
-if [ -z "$__gpg_agent_guard" ] ; then __gpg_agent_guard=1
-source "$HOME/.bash-lib/init"
-
 mload commonlib
 
 if check_exit_code _ which gpg-agent ; then
@@ -53,6 +50,3 @@ if check_exit_code _ which gpg-agent ; then
 
     unset env_file
 fi
-
-fi #!__gpg_agent_guard
-

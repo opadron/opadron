@@ -1,8 +1,5 @@
 #! /usr/bin/env bash
 
-if [ -z "$__debug_guard" ] ; then __debug_guard=1
-source "$HOME/.bash-lib/init"
-
 debug() {
     if [ -z "$*" ] ; then
         [ -n "$DEBUG" ]
@@ -14,5 +11,3 @@ debug() {
         echo "$@"
     fi
 }
-
-fi #!__debug_guard

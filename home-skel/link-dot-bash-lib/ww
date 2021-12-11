@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+ww() {
+    if [ "$1" '=' '-' ] ; then
+        shift
+        __ww_com="${*}"
+    else
+        local com="${*}"
+
+        if [ -z "$*" ] ; then
+            com="$__ww_com"
+        fi
+
+        while [ "${com::1}" '=' ' ' ] ; do
+            com="${com:1}"
+        done
+
+        n="$(( "${#com}" - 1 ))"
+        while [ "${com:$n:1}" '=' ' ' ] ; do
+            com="${com::$n}"
+            n="$(( n - 1 ))"
+        done
+
+        if [ -n "$com" ] ; then
+            local shell="$SHELL"
+            if [ -z "$shell" ] ; then
+                shell=bash
+            fi
+            watch -c -d -t -x "$shell" -c "{ $com ; } | no-wrap"
+        fi
+    fi
+}

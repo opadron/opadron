@@ -1,8 +1,5 @@
 #! /usr/bin/env bash
 
-if [ -z "$__autoload_guard" ] ; then __autoload_guard=1
-source "$HOME/.bash-lib/init"
-
 _old_ifs="$IFS"
 IFS=':'
 
@@ -12,6 +9,3 @@ done
 
 IFS="$_old_ifs"
 unset _old_ifs
-
-fi #!__autoload_guard
-

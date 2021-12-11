@@ -1,8 +1,5 @@
 #! /usr/bin/env bash
 
-if [ -z "$__preexec_guard" ] ; then __preexec_guard=1
-source "$HOME/.bash-lib/init"
-
 function preexec () { :; }
 function preexec_invoke_exec() {
     if [ -n "$COMP_LINE" ] ; then return ; fi
@@ -12,7 +9,4 @@ function preexec_invoke_exec() {
     preexec "$this_command"
 }
 
-trap "preexec_invoke_exec" DEBUG
-
-fi #!__preexec_guard
-
+trap "__________=\"\$_\" ; preexec_invoke_exec ; true \"\$__________\"" DEBUG

@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-if [ -z "$__sessions_guard" ] ; then __sessions_guard=1
-
 ss() {
     (
         tmux list-sessions -F \
@@ -27,30 +25,30 @@ ss() {
 }
 
 s() {
-    local name="$1"
+    local dir="$1"
 
-    if [ -z "$name" ] ; then
-        name="$( pwd )"
-    elif [ '!' -d "$name" ] ; then
-        cd "$name"
+    if [ -z "$dir" ] ; then
+        dir="$( pwd )"
+    elif [ '!' -d "$dir" ] ; then
+        cd "$dir"
         return $?
     else
-        name="$( cd "$name" && pwd )"
+        dir="$( cd "$dir" && pwd )"
     fi
 
-    name="$( echo "$name" | base64 )"
+    name="$( echo "$dir" | base64 )"
 
     if [ -z "$TMUX" ] ; then
         (
             while true ; do
                 display_name="$( echo "$name" | base64 -d )"
-        if [ "${#display_name}" -gt 20 ] ; then
-            n="$(( ${#display_name} - 17 ))"
-            display_name="...${display_name:$n}"
-        fi
+                if [ "${#display_name}" -gt 20 ] ; then
+                    n="$(( ${#display_name} - 17 ))"
+                    display_name="...${display_name:$n}"
+                fi
 
                 export TMUX_SESSION_DISPLAY_NAME="$display_name"
-                tmux new-session -d -s "$name" &> /dev/null
+                tmux new-session -c "$dir" -d -s "$name" &> /dev/null
                 tmux attach-session -d -t "$name" &> /dev/null
 
                 if [ '!' -f "$HOME/.tmux-$name" ] ; then
@@ -87,5 +85,3 @@ s() {
         tmux detach-client
     fi
 }
-
-fi #!__sessions_guard

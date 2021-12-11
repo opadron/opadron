@@ -1,8 +1,5 @@
 #! /usr/bin/env bash
 
-if [ -z "$__solarize_guard" ] ; then __solarize_guard=1
-source "$HOME/.bash-lib/init"
-
 dark() {
     eval "$( dircolors ~/.solarize-dircolors )"
     export VIMCOLORSCHEME=solarized
@@ -35,6 +32,3 @@ if [ -n "$TERM_SCHEME" ] ; then
         plain
     fi
 fi
-
-fi #!__solarize_guard
-

@@ -1,9 +1,3 @@
 #! /usr/bin/env bash
 
-if [ -z "$__disable_ixon_guard" ] ; then __disable_ixon_guard=1
-source "$HOME/.bash-lib/init"
-
 stty -ixon &> /dev/null
-
-fi #!__disable_ixon_guard
-

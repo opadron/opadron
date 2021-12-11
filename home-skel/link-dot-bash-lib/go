@@ -1,0 +1,7 @@
+#! /usr/bin/env bash
+
+mload commonlib
+
+if which go &> /dev/null ; then
+    envappend PATH "$( go env GOPATH )/bin"
+fi

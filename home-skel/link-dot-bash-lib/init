@@ -5,16 +5,28 @@ if [ -z "$__bash_lib_guard" ] ; then __bash_lib_guard=1
 __bashlib_dir="$HOME/.bash-lib"
 
 mload() {
+    local first_arg="$1"
+    if [ "$first_arg" '=' '-f' ] ; then
+        shift
+    fi
+
     while [ -n "$*" ] ; do
         local module="$1"
         shift
 
-        local module_file="$__bashlib_dir/$module"
-        if [ -f "$module_file" ] ; then
-            source "$module_file"
+        local guard="__${module}_guard"
+        if [ "$first_arg" '!=' '-f' -a -n "${!guard}" ] ; then
+            continue
         fi
+
+        local module_file="$__bashlib_dir/$module"
+        if [ '!' -f "$module_file" ] ; then
+            continue
+        fi
+
+        eval "${guard}=1"
+        source "$module_file"
     done
 }
 
 fi # !__bash_lib_guard
-

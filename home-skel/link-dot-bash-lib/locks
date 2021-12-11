@@ -1,8 +1,5 @@
 #! /usr/bin/env bash
 
-if [ -z "$__locks_guard" ] ; then __locks_guard=1
-source "$HOME/.bash-lib/init"
-
 lock_try() {
     local dir="$1"
     mkdir "$dir" &>/dev/null
@@ -48,5 +45,3 @@ lock_release() {
     rm -r "$dir" &>/dev/null
     return $?
 }
-
-fi #!__locks_guard

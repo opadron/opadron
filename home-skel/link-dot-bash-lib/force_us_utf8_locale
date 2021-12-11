@@ -1,10 +1,4 @@
 #! /usr/bin/env bash
 
-if [ -z "$__force_us_utf8_locale_guard" ] ; then __force_us_utf8_locale_guard=1
-source "$HOME/.bash-lib/init"
-
 export LC_ALL='en_US.UTF-8'
 export LANG='en_US.UTF-8'
-
-fi #!__force_us_utf8_locale_guard
-

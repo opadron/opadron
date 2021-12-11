@@ -1,7 +1,5 @@
 #! /usr/bin/env bash
 
-if [ -z "$__mac_coreutils_guard" ] ; then __mac_coreutils_guard=1
-
 mload commonlib
 mload introspection
 
@@ -29,6 +27,3 @@ if [ "$INTROSPECT_PLATFORM" = 'MAC' ] ; then
     export PATH
     export MANPATH
 fi
-
-fi # !__mac_coreutils_guard
-

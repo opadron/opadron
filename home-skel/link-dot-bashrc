@@ -3,6 +3,8 @@
 if [ -z "$__bashrc_guard" ] ; then __bashrc_guard=1
 source "$HOME/.bash-lib/init"
 
+DISABLE_PROMPT=1
+
 mload autoload
 
 mload aliases
@@ -22,6 +24,42 @@ mload solarize
 
 mload pwnall
 mload sessions
+mload go
+mload ww
+
+__check_mosh() {
+    local pid="$$"
+    while true ; do
+        pid="$( ppid "$pid" )"
+        if [ "$pid" '=' 'x' ] ; then
+            break
+        fi
+        local bin_name="$( readlink -f "/proc/$pid/exe" )"
+        if [ -z "$bin_name" ] ; then continue ; fi
+
+        bin_name="$( basename "$bin_name" )"
+        if [ -z "$bin_name" ] ; then continue ; fi
+
+        if [[ "$bin_name" =~ ^mosh-server.* ]] ; then
+            echo "Found mosh-server session (pid: $pid).  Terminating..."
+            sleep 3
+            kill -s TERM "$pid"
+            break
+        fi
+    done
+}
+
+if [ -t 0 -a "$SHLVL" -lt 2 ] ; then
+    on_exit __check_mosh
+fi
+
+source /sw/spack/share/spack/setup-env.sh
+spack load neovim@master
+push_install /usr/local
+
+export TERM=xterm-256color
+export EDITOR=v
+
+. <(flux completion bash)
 
 fi # !__bashrc_guard
-

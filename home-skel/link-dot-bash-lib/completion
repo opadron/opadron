@@ -1,7 +1,5 @@
 #! /usr/bin/env bash
 
-if [ -z "$__completions_guard" ] ; then __completions_guard=1
-
 mload introspection
 
 if [ "$INTROSPECT_PLATFORM" = 'MAC' ] ; then
@@ -9,6 +7,3 @@ if [ "$INTROSPECT_PLATFORM" = 'MAC' ] ; then
         source $(brew --prefix)/etc/bash_completion
     fi
 fi
-
-fi # !__completions_guard
-

@@ -1,8 +1,5 @@
 #! /usr/bin/env bash
 
-if [ -z "$__commonlib_guard" ] ; then __commonlib_guard=1
-source "$HOME/.bash-lib/init"
-
 function envget() {
     while [ -n "$*" ] ; do
         local key="$1" ; shift
@@ -258,9 +255,9 @@ function platform() {
 function push_path() {
     local path_var="$1" ; shift
 
-    args=("$@")
+    local args=("$@")
     for ((i=0; i<${#args[@]}; ++i)) ; do
-        dir="${args[$i]}"
+        local dir="${args[$i]}"
         if [ -d "$dir" ] ; then
             envpush $path_var "$dir"
         fi
@@ -268,9 +265,9 @@ function push_path() {
 }
 
 function push_install() {
-    args=("$@")
+    local args=("$@")
     for ((i=0; i<${#args[@]}; ++i)) ; do
-        dir="$( realpath "${args[$i]}" )"
+        local dir="$( realpath "${args[$i]}" )"
 
         push_path PATH               "$dir/bin"
         push_path PATH               "$dir/sbin"
@@ -326,6 +323,3 @@ function pid_walk() {
 }
 
 mload introspection
-
-fi #!__commonlib_guard
-

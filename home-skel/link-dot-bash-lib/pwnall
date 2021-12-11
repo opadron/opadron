@@ -1,7 +1,5 @@
 #! /usr/bin/env bash
 
-if [ -z "$__pwnall" ] ; then __pwnall=1
-
 export PWNALL_FREQ=200
 
 __clear() {
@@ -32,6 +30,3 @@ __clear() {
 }
 
 alias clear='__clear'
-
-fi #!__pwnall_guard
-
