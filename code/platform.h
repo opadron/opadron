@@ -34,6 +34,43 @@ typedef ptr  *hdl;
 typedef unsigned char uchar;
 typedef signed char schar;
 
+typedef union {
+    i128       i128;
+    i64         i64;
+    i32         i32;
+    i16         i16;
+    i8           i8;
+
+    u128       u128;
+    u64         u64;
+    u32         u32;
+    u16         u16;
+    u8           u8;
+
+    f128       f128;
+    f64         f64;
+    f32         f32;
+
+    counter counter;
+    diff       diff;
+    ptr         ptr;
+    hdl         hdl;
+
+    uchar     uchar;
+    schar     schar;
+
+    int            d;
+    int            i;
+    long           l;
+    unsigned int   u;
+    unsigned long lu;
+    float          f;
+    double        lf;
+    char *         s;
+    char           c;
+} any;
+
+
 /* variables: file scope */
 #define global
 #define local static
@@ -138,7 +175,7 @@ typedef signed char schar;
 #define CPP_DISPATCH_MULTI_0(MACRO, N, ...) \
     CPP_DISPATCH_MULTI_0a(CONCAT(MACRO, _MULTI), N, __VA_ARGS__)
 
-#define CPP_DISPATCH_MULTI_0a(NEXT, N, ...) NEXT(N, __VA_ARGS__)
+#define CPP_DISPATCH_MULTI_0a(NEXT, N, ...) NEXT(__VA_ARGS__)
 
 #define CPP_DISPATCH_MULTI_1(MACRO, N, ...) \
     CPP_DISPATCH_MULTI_0a(CONCAT(MACRO, _SINGLE), N, __VA_ARGS__)
@@ -156,6 +193,21 @@ typedef signed char schar;
 #define DESTRUCTOR_DECL(TYPE)                                  \
     extern struct TYPE *CONCAT(TYPE, _finalize)(struct TYPE *)
 
+#define STRUCT_DECL(...) CPP_DISPATCH(STRUCT_DECL, MULTI, __VA_ARGS__)
+
+#define STRUCT_DECL_SINGLE(TYPE) \
+    STRUCT_DECL_MULTI(TYPE, TYPE)
+
+#define STRUCT_DECL_MULTI(A, B, ...) \
+    struct B;                        \
+    typedef struct B A
+
+#define STRUCT_DEF(...) CPP_DISPATCH(STRUCT_DEF, MULTI, __VA_ARGS__)
+
+#define STRUCT_DEF_SINGLE(TYPE) \
+    STRUCT_DEF_MULTI(TYPE, TYPE)
+
+#define STRUCT_DEF_MULTI(A, B, ...) struct B
 
 #define CONSTRUCTOR_DEF(...) CPP_DISPATCH(CONSTRUCTOR_DEF, MULTI, __VA_ARGS__)
 

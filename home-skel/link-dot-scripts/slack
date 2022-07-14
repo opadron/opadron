@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+dir="$HOME/.terminal-slack"
+config="$HOME/.slack"
+
+if [ -z "$SLACK_TOKEN" ] ; then
+    key="$1"
+
+    if [ -z "$key" ] ; then
+        key=default
+    fi
+
+    export SLACK_TOKEN="$( grep "$key" "$config" | head -n 1 | cut -d\  -f 1 )"
+fi
+
+if [ '!' -d "$dir" ] ; then
+    mkdir -p "$( dirname "$dir" )"
+    git clone git://github.com/evanyeung/terminal-slack.git "$dir"
+    (
+        cd "$dir"
+        npm install
+    )
+fi
+
+(
+    cd "$dir"
+    node main.js
+)
+

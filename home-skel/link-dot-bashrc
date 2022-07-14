@@ -9,7 +9,6 @@ mload aliases
 mload commonlib
 mload completion
 mload disable_ixon
-mload docker_machine
 mload environment
 mload force_us_utf8_locale
 mload gpg_agent

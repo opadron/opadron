@@ -7,6 +7,8 @@
 hist = log --graph --decorate --oneline
 history = log --graph --decorate --oneline --simplify-by-decoration
 log1 = log --oneline
+[credential]
+    helper = ""
 [color]
 	status = always
 [core]

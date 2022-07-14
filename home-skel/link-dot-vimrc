@@ -116,13 +116,50 @@ let mapleader=","
 
 syntax enable
 
+"   background, GUI color scheme , color scheme,                  airline theme
 let g:schemes = [
-  \["dark" , "smyck"      , "smyck"      , "jellybeans" , "jellybeans"      ],
-  \["dark" , "vividchalk" , "vividchalk" , "jellybeans" , "jellybeans"      ],
-  \["light", "sol"        , "sol-term"   , "sol"        , "sol"             ],
-  \["light", "solarized"  , "solarized"  , "solarized"  , "base16_solarized"],
-  \["dark" , "solarized"  , "solarized"  , "solarized"  , "base16_solarized"],
-  \["light", "mac_classic", "mac_classic", "understated", "understated"     ]
+\  {
+\    'background'   : ['dark'              , 'dark'                 ],
+\    'color_scheme' : ['smyck'             , 'smyck'                ],
+\    'airline_theme': ['jellybeans'        , 'jellybeans'           ],
+\    'over_length'  : 'ctermbg=red ctermfg=white guibg=#592929',
+\    'color_column' : 'term=reverse ctermbg=red guibg=DarkRed'
+\  },
+\  {
+\    'background'   : ['dark'              , 'dark'                 ],
+\    'color_scheme' : ['vividchalk'        , 'vividchalk'           ],
+\    'airline_theme': ['jellybeans'        , 'jellybeans'           ],
+\    'over_length'  : 'ctermbg=red ctermfg=white guibg=#592929',
+\    'color_column' : 'term=reverse ctermbg=red guibg=DarkRed'
+\  },
+\  {
+\    'background'   : ['light'             , 'light'                ],
+\    'color_scheme' : ['sol-term'          , 'sol'                  ],
+\    'airline_theme': ['sol'               , 'sol'                  ],
+\    'over_length'  : 'ctermbg=red ctermfg=white guibg=#592929',
+\    'color_column' : 'term=reverse ctermbg=LightRed guibg=DarkRed'
+\  },
+\  {
+\    'background'   : ['light'             , 'light'                ],
+\    'color_scheme' : ['solarized'         , 'solarized'            ],
+\    'airline_theme': ['base16_solarized'  , 'solarized'            ],
+\    'over_length'  : 'ctermbg=red ctermfg=white guibg=#592929',
+\    'color_column' : 'term=reverse ctermbg=red guibg=DarkRed'
+\  },
+\  {
+\    'background'   : ['dark'              , 'dark'                 ],
+\    'color_scheme' : ['solarized'         , 'solarized'            ],
+\    'airline_theme': ['base16_solarized'  , 'solarized'            ],
+\    'over_length'  : 'ctermbg=red ctermfg=white guibg=#592929',
+\    'color_column' : 'term=reverse ctermbg=red guibg=DarkRed'
+\  },
+\  {
+\    'background'   : ['light'             , 'light'                ],
+\    'color_scheme' : ['mac_classic'       , 'mac_classic'          ],
+\    'airline_theme': ['understated'       , 'understated'          ],
+\    'over_length'  : 'ctermbg=red ctermfg=white guibg=#592929',
+\    'color_column' : 'term=reverse ctermbg=red guibg=DarkRed'
+\  }
 \]
 
 let g:scheme_index=0
@@ -134,41 +171,45 @@ function CycleSchemes()
   endif
 
   let entry = g:schemes[g:scheme_index]
+  let entry_index = 0
+  if has("gui_running")
+    let entry_index = 1
+  endif
 
-  if entry[1] == "solarized"
+  let background    = entry['background'   ][entry_index]
+  let color_scheme  = entry['color_scheme' ][entry_index]
+  let airline_theme = entry['airline_theme'][entry_index]
+  let over_length   = entry['over_length'  ]
+  let color_column  = entry['color_column' ]
+
+  if background == "solarized"
     let g:solarized_termtrans=1
     let g:solarized_bold=1
     let g:solarized_underline=1
     let g:solarized_italic=1
   endif
 
-  let background = entry[0]
-  let colorscheme = entry[2]
-  let airline_theme= entry[4]
-
-  if has("gui_running")
-    let colorscheme = entry[1]
-    let airline_theme = entry[3]
-  endif
-
   execute "set background=" . background
-  execute "colorscheme " . colorscheme
+  execute "colorscheme " . color_scheme
   if g:first_cycle_schemes_call == 1
     let g:airline_theme = airline_theme
   else
     execute "AirlineTheme " . airline_theme
   endif
+
+  set cursorline
+  set cursorcolumn
+  set colorcolumn=+1
+
+  execute "highlight ColorColumn " . color_column
+  execute "highlight OverLength " . over_length
+  match OverLength /\%81v.\+/
+
+  let g:first_cycle_schemes_call = 0
 endfunction
 
+let g:scheme_index=4
 call CycleSchemes()
-
-set   cursorline   " highlight current line
-set   cursorcolumn " highlight current column
-
-highlight OverLength ctermbg=red ctermfg=white guibg=#592929
-match OverLength /\%81v.\+/
-
-set colorcolumn=+1
 
 "------------------------------------------------------------------------------"
 "# PLUGIN/FILETYPE-SPECIFIC OPTIONS ###########################################"
@@ -328,8 +369,9 @@ let unite_options.=" -auto-resize"
 let unite_options.=" -no-restore"
 
 " nnoremap <Leader><Leader> :Unite -no-split -start-insert file_rec<CR>
+" \ :execute "Unite" . unite_options<CR>
 nnoremap <Leader><Space>
-  \ :execute "Unite" . unite_options<CR>
+  \ :terminal ++close ++curwin fish<CR>
 
 nnoremap <Leader>/ :execute "Unite" . unite_options . " line"<CR>
 
@@ -341,6 +383,5 @@ nnoremap <Leader>- :split<CR>
 
 nnoremap <Leader><Tab> :call CycleSchemes()<CR>
 " nnoremap <Leader><Space> :VimShell<CR>
-
 "------------------------------------------------------------------------------"
 

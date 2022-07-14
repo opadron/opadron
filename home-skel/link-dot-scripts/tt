@@ -1,0 +1,5 @@
+
+#!/usr/bin/env bash
+
+exec /Applications/iTerm.app/Contents/MacOS/iTerm2 "$@"
+
