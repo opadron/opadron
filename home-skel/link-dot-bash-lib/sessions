@@ -1,5 +1,34 @@
 #!/usr/bin/env bash
 
+sf() {
+    session_choice="$(
+        (
+            tmux list-sessions -F \
+                '#S|#{session_windows}|#{?session_attached,*,}' \
+                    2>/dev/null
+        ) | awk -F \| '
+            BEGIN {
+                extra="";
+            }
+
+            NF!=3 {
+                extra = extra""$0;
+            }
+
+            NF==3 {
+                com="echo "extra""$1" | base64 -d";
+                extra="";
+                com | getline result;
+                close(com);
+                print $3"|"result"|"$2;
+            }' | sort | awk -F \| '{ print $1":"$2 }' |
+                fzf --delimiter : --bind 'enter:become(echo {2})'
+    )"
+    if [ -n "$session_choice" ] ; then
+        s "$session_choice"
+    fi
+}
+
 ss() {
     (
         tmux list-sessions -F \
@@ -36,7 +65,7 @@ s() {
         dir="$( cd "$dir" && pwd )"
     fi
 
-    name="$( echo "$dir" | base64 )"
+    name="$( echo "$dir" | base64 | tr -d '\n' )"
 
     if [ -z "$TMUX" ] ; then
         (

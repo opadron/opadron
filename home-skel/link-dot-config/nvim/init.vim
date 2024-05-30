@@ -1,5 +1,3 @@
-colorscheme ron
-
 set autowrite
 set backspace=
 set clipboard=unnamedplus
@@ -86,19 +84,37 @@ autocmd TermOpen * setlocal nonumber
 " filetype=TelescopePrompt
 
 call plug#begin()
-    Plug 'catppuccin/nvim', { 'as': 'catppuccin' }
     " Plug 'glepnir/galaxyline.nvim' , { 'branch': 'main' }
-    Plug 'nvim-lualine/lualine.nvim'
-    Plug 'nvim-tree/nvim-web-devicons'
+    Plug 'catppuccin/nvim', { 'as': 'catppuccin' }
+    Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
     Plug 'nvim-lua/plenary.nvim'
+    Plug 'nvim-lualine/lualine.nvim'
     Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.2' }
-    Plug 'xiyaowong/transparent.nvim'
-
+    Plug 'nvim-tree/nvim-web-devicons'
     Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+    Plug 'xiyaowong/transparent.nvim'
 call plug#end()
 
 " colorscheme desert
 colorscheme catppuccin-mocha
+
+highlight OverLengthCaution ctermbg=yellow ctermfg=white guibg=#592929
+highlight OverLengthDanger ctermbg=red ctermfg=white guibg=#592929
+
+" match OverLengthCaution /\%81v.\{,6\}/
+match OverLengthCaution /\%21v.\{,6\}/
+match OverLengthDangrr /\%87v.\+/
+
+set colorcolumn=+1
+
+
+if !exists("g:init_vim")
+    let g:init_vim=stdpath("config") . "/init.vim"
+    function Reload()
+        execute "source " .. fnameescape(g:init_vim)
+    endfunction
+endif
+
 
 lua << END
 require('lualine').setup()
