@@ -49,25 +49,20 @@ nnoremap <Space><Space>
 "" set shellquote=\"
 "" set shellxquote=
 
-nnoremap <C-h> <C-w>h
-nnoremap <C-j> <C-w>j
-nnoremap <C-k> <C-w>k
-nnoremap <C-l> <C-w>l
-
-inoremap <C-h> <C-\><C-N><C-w>h
-inoremap <C-j> <C-\><C-N><C-w>j
-inoremap <C-k> <C-\><C-N><C-w>k
-inoremap <C-l> <C-\><C-N><C-w>l
-
-inoremap <C-h> <C-\><C-N><C-w>h
-inoremap <C-j> <C-\><C-N><C-w>j
-inoremap <C-k> <C-\><C-N><C-w>k
-inoremap <C-l> <C-\><C-N><C-w>l
+" nnoremap <C-h> <C-w>h
+" nnoremap <C-j> <C-w>j
+" nnoremap <C-k> <C-w>k
+" nnoremap <C-l> <C-w>l
 
 nnoremap _ <cmd>vertical resize -2<CR>
 nnoremap = <cmd>resize +2<CR>
 nnoremap - <cmd>resize -2<CR>
 nnoremap + <cmd>vertical resize +2<CR>
+
+" nnoremap <C-h> <cmd>vertical resize -2<CR>
+" nnoremap <C-j> <cmd>resize -2<CR>
+" nnoremap <C-k> <cmd>resize +2<CR>
+" nnoremap <C-l> <cmd>vertical resize +2<CR>
 
 " vnoremap < <gv
 " vnoremap > >gv
@@ -76,6 +71,7 @@ let mapleader = ','
 
 nnoremap <Leader>- <cmd>split<CR>
 nnoremap <Leader>\| <cmd>vsplit<CR>
+nnoremap <Leader>\ <cmd>vsplit<CR>
 
 autocmd TermOpen * setlocal nonumber
 
@@ -90,10 +86,44 @@ call plug#begin()
     Plug 'nvim-lua/plenary.nvim'
     Plug 'nvim-lualine/lualine.nvim'
     Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.2' }
+    Plug 'nvim-telescope/telescope-symbols.nvim'
     Plug 'nvim-tree/nvim-web-devicons'
     Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
     Plug 'xiyaowong/transparent.nvim'
+
+    Plug 'airblade/vim-gitgutter'
+    Plug 'f-person/git-blame.nvim'
+
+    Plug 'folke/twilight.nvim'
+    Plug 'folke/zen-mode.nvim'
+
+    Plug 'christoomey/vim-tmux-navigator'
+    Plug 'RyanMillerC/better-vim-tmux-resizer'
 call plug#end()
+
+let g:tmux_navigator_no_mappings = 1
+let g:tmux_navigator_disable_when_zoomed = 1
+let g:tmux_navigator_preserve_zoom = 1
+
+nnoremap <silent> <C-a>h <cmd>TmuxNavigateLeft<CR>
+nnoremap <silent> <C-a>j <cmd>TmuxNavigateDown<CR>
+nnoremap <silent> <C-a>k <cmd>TmuxNavigateUp<CR>
+nnoremap <silent> <C-a>l <cmd>TmuxNavigateRight<CR>
+
+let g:tmux_resizer_no_mappings = 1
+
+nnoremap <silent> <C-a>H :TmuxResizeLeft<CR>
+nnoremap <silent> <C-a>J :TmuxResizeDown<CR>
+nnoremap <silent> <C-a>K :TmuxResizeUp<CR>
+nnoremap <silent> <C-a>L :TmuxResizeRight<CR>
+
+let g:gitgutter_highlight_lines = 1
+let g:gitgutter_highlight_linenrs = 1
+let g:gitgutter_signs = 0
+
+let g:gitblame_enabled = 1
+let g:gitblame_message_template = '         <sha> - <author> - <summary>'
+let g:gitblame_message_when_not_committed = '         «unstaged»'
 
 " colorscheme desert
 colorscheme catppuccin-mocha
@@ -129,3 +159,10 @@ nnoremap <Leader>g <cmd>Telescope live_grep<CR>
 nnoremap <Leader>h <cmd>Telescope help_tags<CR>
 nnoremap <Leader>t <cmd>Telescope tags<CR>
 nnoremap <Leader>/ <cmd>Telescope current_buffer_fuzzy_find<CR>
+
+nnoremap gh        <Plug>(GitGutterNextHunk)
+nnoremap gH        <Plug>(GitGutterPrevHunk)
+nnoremap <Leader>s <Plug>(GitGutterStageHunk)
+
+nnoremap <Leader>z <cmd>ZenMode<CR>
+nnoremap <Leader>l <cmd>Twilight<CR>

@@ -79,3 +79,6 @@
 [submodule "home-skel/link-dot-vim-modules/neocomplete"]
 	path = home-skel/link-dot-vim-modules/neocomplete
 	url = git://github.com/shougo/neocomplete.vim
+[submodule "home-skel/link-dot-tmux/plugins/tpm"]
+	path = home-skel/link-dot-tmux/plugins/tpm
+	url = ssh://git@github.com/tmux-plugins/tpm

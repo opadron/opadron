@@ -66,6 +66,7 @@ s() {
     fi
 
     name="$( echo "$dir" | base64 | tr -d '\n' )"
+    export TMUX_SESSION_ROOT="$dir"
 
     if [ -z "$TMUX" ] ; then
         (
@@ -87,6 +88,7 @@ s() {
                 unset dir
                 unset parent
                 source "$HOME/.tmux-$name"
+                export TMUX_SESSION_ROOT="$dir"
                 rm -f "$HOME/.tmux-$name"
 
                 name="$parent"

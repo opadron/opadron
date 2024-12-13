@@ -1,0 +1,160 @@
+#! /usr/bin/env python3
+
+import collections
+import contextlib
+import io
+import os
+import subprocess
+import sys
+import tempfile
+import yaml
+
+
+def normalize_file_path(arg):
+    if arg in (None, '-'):
+        return None
+    if os.path.abspath(arg) == '/dev/stdin':
+        return None
+    return arg
+
+
+_tmp_dir = None
+_stack = None
+
+
+def get_tmp_dir():
+    global _tmp_dir
+    if _tmp_dir is None:
+        _tmp_dir = _stack.enter_context(tempfile.TemporaryDirectory())
+    return _tmp_dir
+
+
+_helm_env = None
+
+
+def get_helm_env():
+    global _helm_env
+    if _helm_env is None:
+        tmp = get_tmp_dir()
+
+        helm_cache_dir = os.path.join(tmp, 'helm-cache')
+        helm_config_dir = os.path.join(tmp, 'helm-config')
+        helm_data_dir = os.path.join(tmp, 'helm-data')
+        for dir_ in (helm_cache_dir, helm_config_dir, helm_data_dir):
+            os.mkdir(dir_)
+
+        _helm_env = collections.ChainMap(
+            {
+                'HELM_CACHE_HOME': helm_cache_dir,
+                'HELM_CONFIG_HOME': helm_config_dir,
+                'HELM_DATA_HOME': helm_data_dir,
+            },
+            os.environ,
+        )
+
+    return _helm_env
+
+
+def helm(*args, **kwargs):
+    input = kwargs.pop('input', None)
+    kwargs.setdefault('env', get_helm_env())
+    kwargs.setdefault('text', True)
+
+    if input is None:
+        kwargs.setdefault('stdout', subprocess.DEVNULL)
+        return subprocess.check_call(['helm'] + list(args), **kwargs)
+
+    kwargs.setdefault('stdin', subprocess.PIPE)
+    proc = subprocess.Popen(['helm'] + list(args), **kwargs)
+    with proc:
+        proc.communicate(input=input)
+    if proc.returncode != 0:
+        raise subprocess.CalledProcessError(proc.returncode, proc.args)
+
+
+file_paths = list(map(normalize_file_path, sys.argv[1:] or [None]))
+fd_table = {}
+input_table = {}
+repo_table = {}
+repo_counter = 0
+
+with contextlib.ExitStack() as stack:
+    _stack = stack
+    for path in file_paths:
+
+        # resolve input path to a fd
+        if path is None:  # stdin
+            fd = sys.stdin
+        else:
+            fd = fd_table.get(path, None)
+            if fd is None:
+                fd = stack.enter_context(open(path))
+                fd_table[path] = fd
+
+        # resolve fd to a data structure
+        data = input_table.get(fd)
+        if data is None:
+            data = yaml.full_load(fd)
+            repo = data['spec']['repo']
+            chart = data['spec']['chart']
+            version = data['spec'].get('version', None)
+            meta = data['metadata']
+            namespace = (
+                data['spec'].get('targetNamespace', None) or
+                meta.get('namespace', 'default')
+            )
+            values = data['spec'].get('valuesContent', None)
+            data = {
+                'chart': chart,
+                'namespace': namespace,
+                'release': meta['name'],
+                'repo': repo,
+                'values': values or '',
+                'version': version,
+            }
+            input_table[fd] = data
+
+        # resolve the repo url to local identifier
+        repo_index = repo_table.get(data['repo'], None)
+        if repo_index is None:
+            repo_index = repo_counter
+            repo_counter += 1
+            repo_table[data['repo']] = repo_index
+            helm('repo', 'add', f'repo{repo_index}', data['repo'])
+
+    helm('repo', 'update')
+
+    for path in file_paths:
+        data = input_table[fd_table.get(path, sys.stdin)]
+        repo_index = repo_table[data['repo']]
+
+        extra_args, extra_kwargs = [], {}
+
+        version = data['version']
+        if version is not None:
+            extra_args.extend(['--version', version])
+
+        values = data['values']
+        if values is not None:
+            extra_args.extend(['--values', '-'])
+            extra_kwargs.update({'input': values})
+
+        print(f'''##############################
+# HELM RENDER OUTPUT
+# chart:     {data["chart"]}''')
+
+        if version is not None:
+            print(f'# version:   {version}')
+
+        print(f'''# namespace: {data["namespace"]}
+# release:   {data["release"]}
+# repo_url:  {data["repo"]}
+##############################
+''', flush=True)
+        helm(
+            'template',
+            data['release'],
+            f'repo{repo_index}/{data["chart"]}',
+            *extra_args,
+            **extra_kwargs,
+        )

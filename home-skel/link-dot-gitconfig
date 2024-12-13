@@ -7,6 +7,7 @@
 hist = log --graph --decorate --oneline
 history = log --graph --decorate --oneline --simplify-by-decoration
 log1 = log --oneline
+fap = fetch --all --prune
 [color]
 	status = always
 [core]
@@ -18,3 +19,5 @@ log1 = log --oneline
 [mergetool]
 	vdtrustExitCode = true
 	keepBackup = false
+[init]
+	defaultBranch = main

@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+exec cut "-c1-$COLUMNS"
