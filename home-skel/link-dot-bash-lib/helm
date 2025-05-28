@@ -1,0 +1,5 @@
+#! /usr/bin/env bash
+
+helm-inspect() {
+    cd "$( helm_inspect "$@" )"
+}

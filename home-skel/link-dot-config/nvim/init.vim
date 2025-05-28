@@ -74,6 +74,7 @@ nnoremap <Leader>\| <cmd>vsplit<CR>
 nnoremap <Leader>\ <cmd>vsplit<CR>
 
 autocmd TermOpen * setlocal nonumber
+autocmd CompleteDone * pclose
 
 " autocmd User TelescopeFindPre * echo "PRE"
 

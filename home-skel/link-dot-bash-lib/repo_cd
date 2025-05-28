@@ -1,0 +1,51 @@
+#! /usr/bin/env bash
+
+mload auto_fzf
+
+rcd() {
+    local namespace="$REPO_CD_DEFAULT_NAMESPACE"
+    if [ -z "$namespace" ] ; then
+        namespace='github'
+    fi
+    local path=''
+    local ns_flag=0
+    while [ "$#" -gt 0 ] ; do
+        if [ "$ns_flag" '=' '1' ] ; then
+            namespace="$1"
+            ns_flag=0
+            shift
+            continue
+        fi
+
+        if [ "$1" '=' '-n' -o "$1" '=' '--namespace' ] ; then
+            ns_flag=1
+            shift
+            continue
+        fi
+
+        path="$1"
+        shift
+    done
+
+    if [ -z "$path" ] ; then
+        path="$HOME/p/$( auto_fzf ~/.scripts/auto_fzf/rcd )"
+        if [ -z "$path" ] ; then
+            return 0
+        fi
+        cd "$path"
+        return "$?"
+    fi
+
+    local prefix="$namespace/"
+    if [ "$namespace" '=' "$REPO_CD_DEFAULT_NAMESPACE" ] ; then
+        prefix=''
+    fi
+
+    local dir="$HOME/p/$prefix$path"
+    if ! [ -d "$dir" ] ; then
+        mkdir -p "$dir"
+        git clone -- "ssh://$namespace/$path" "$dir"
+    fi
+
+    cd "$dir"
+}

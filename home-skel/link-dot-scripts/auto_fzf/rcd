@@ -1,0 +1,5 @@
+#! /usr/bin/env bash
+# auto_fzf -- echo {1}
+cd "$HOME/p"
+find . -mindepth 1 -maxdepth 3 -type d -iname '.git' |
+    sed -re 's/^.\/(.*)\/\.git/\1/g'

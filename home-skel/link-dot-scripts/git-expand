@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 
 import os
 import os.path
@@ -7,8 +7,8 @@ import sys
 
 import subprocess as sp
 
-RE_DUMB_COMMIT = re.compile(r"""([a-f0-9]+) (x|X)""")
-HUNK_STAGE_PAYLOAD = "\n".join((10*"s" + "yq "))
+RE_DUMB_COMMIT = re.compile(r"""([a-f0-9]+) (x|X) ?(.*)""")
+HUNK_STAGE_PAYLOAD = "\n".join((100*"s" + "yq "))
 
 def CC(*args, **kwargs):
     sp.check_call(*args, **kwargs)
@@ -16,6 +16,7 @@ def CC(*args, **kwargs):
 def COMM(com, payload=None, *args, **kwargs):
     if "stdin"  not in kwargs and payload: kwargs["stdin"] = sp.PIPE
     if "stdout" not in kwargs            : kwargs["stdout"] = sp.PIPE
+    if "text"   not in kwargs            : kwargs["text"] = True
 
     p_handle = sp.Popen(com, *args, **kwargs)
     result = p_handle.communicate(payload)[0]
@@ -39,7 +40,7 @@ def main(tmp_dir):
     for line in COMM(["git", "log", "--oneline"]):
         match = RE_DUMB_COMMIT.match(line)
         if match is None: break
-        hash, message = match.group(1, 2)
+        hash, message = match.group(1, 3)
         commit_list.append((hash, message))
 
     if not commit_list:
@@ -50,7 +51,7 @@ def main(tmp_dir):
         CC(["git", "rev-parse", "rebase", "--"])
 
         # fail if code above does not throw
-        print "rebase branch present" ; sys.stdout.flush()
+        print("rebase branch present", flush=True)
         sys.exit(1)
     except sp.CalledProcessError:
         pass
@@ -127,15 +128,21 @@ def main(tmp_dir):
 
         for file_path in new_list:
             add_hunks(file_path)
-            CC(["git", "commit", "-m", "{} MOD {} {}".format(commit,
-                                                             file_path,
-                                                             message)])
+            try:
+                CC(["git", "diff", "--cached", "--exit-code"])
+            except sp.CalledProcessError:
+                CC(["git", "commit", "-m", "{} MOD {} {}".format(commit,
+                                                                file_path,
+                                                                message)])
 
         for file_path in mod_list:
             add_hunks(file_path)
-            CC(["git", "commit", "-m", "{} MOD {} {}".format(commit,
-                                                             file_path,
-                                                             message)])
+            try:
+                CC(["git", "diff", "--cached", "--exit-code"])
+            except sp.CalledProcessError:
+                CC(["git", "commit", "-m", "{} MOD {} {}".format(commit,
+                                                                file_path,
+                                                                message)])
 
 from tempfile import mkdtemp
 from shutil import rmtree

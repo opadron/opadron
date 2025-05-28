@@ -1,0 +1,21 @@
+#! /usr/bin/env bash
+# auto_fzf -- ssh {2}
+echo '(Former) Lakitu Host     \ cs1rcls05'
+echo 'Lakitu Host              \ cs1-pv-airflw01'
+echo 'Lakitu Dev Host          \ handvairflow01'
+echo 'ch1vm                    \ data@ch1buildvm01'
+echo 'desktop                  \ desktop'
+echo 'dev01                    \ cs1ddops01'
+echo 'dev02                    \ data@cs1pshared01'
+echo 'laptop                   \ laptop'
+echo 'storage01                \ data@cs1pstor01'
+echo 'storage02                \ data@cs1pstor02'
+echo 'storage05                \ data@cs1pstor05'
+echo 'burmanew                 \ data@burmanew'
+echo 'ritik                    \ rbhilware@ONYRBHILWARE02'
+echo 'hanpstor01               \ data@hanpstor01'
+echo 'mini-slurm               \ cs1-pv-slurm2'
+echo 'asamnew                  \ data@asamnew'
+
+echo 'fpga-test-box-1          \ fpgadev@cs1testfpga01'
+echo 'fpga-test-box-2          \ fpgadev@cs1dfpga06'

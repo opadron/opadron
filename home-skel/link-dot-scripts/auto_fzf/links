@@ -1,0 +1,21 @@
+#! /usr/bin/env bash
+# auto_fzf -- google-chrome {2}
+echo '(Old) Airflow     \ https://devops-airflow.bbl-internal.com'
+echo 'Airflow           \ http://mdrp-airflow.bbl-internal.com'
+echo 'Dev Airflow       \ http://mdrp-airflow-dev.bbl-internal.com'
+echo 'Gitboe            \ https://gitboe.bbl-internal.com/boerboel-core'
+echo 'Jira              \ https://boerboel.atlassian.net/issues/?filter=-1'
+echo 'Netbox            \ http://netbox'
+echo 'Nexus             \ https://nexus.bbl-internal.com'
+echo 'Nexus (BAM)       \ http://cs1pvpod06:8081'
+echo 'Prometheus        \ http://yangny4:9090'
+echo 'Team City         \ http://teamcity:8111'
+echo 'Wiki              \ https://boerboel.atlassian.net/wiki'
+echo 'Zabbix            \ http://zabbix'
+echo 'HDX               \ https://dashboard-beta.bbl-internal.com/hdx/raw'
+echo 'Jenkins           \ https://devops-jenkins.bbl-internal.com'
+
+fc='https://gitboe.bbl-internal.com/boerboel-core/futures_core/tree/main/dags'
+echo 'Futures Core      \ '"$fc"
+echo 'Futures Pipeline  \ '"$fc/misc/futures_data_pipeline.py"
+echo 'Equities Pipeline \ '"$fc/misc/equities_data_pipeline.py"

@@ -1,0 +1,77 @@
+#! /usr/bin/env bash
+
+auto_fzf() {
+    local input=0
+    local in_file=''
+    local flag=''
+    local do_exit=0
+    for arg in "$@" ; do
+        if [ -z "$flag" ] ; then
+            if [ "$arg" '=' '-e' ] ; then
+                do_exit=1
+            else
+                in_file="$arg"
+            fi
+        else
+            :
+        fi
+    done
+
+    if [ -n "$in_file" ] ; then
+        exec 3<"$in_file"
+        input=3
+    fi
+
+    local result=1
+    while true ; do
+        local LINE
+        read -u $input LINE || break
+        read -u $input LINE || break
+        local become="$(
+            echo "$LINE" |
+            sed -re 's/^# auto_fzf \-\- (.+?) *$/\1/g'
+        )"
+        [ -n "$become" ] || break
+        result=0
+        break
+    done
+    if [ "$result" '=' '1' ] ; then
+        if [ "$input" '!=' '0' ] ; then
+            eval "exec $input<&-"
+        fi
+        if [ "$do_exit" '=' '1' ] ; then
+            exit $result
+        fi
+        return $result
+    fi
+
+    {
+        source <( cat <&$input ) |
+        sed -re 's/([^ ]+) +\\ +([^ ]+)/\1\t\2/g' |
+        column -t -s $'\t' -o $'\t' |
+        fzf --delimiter $'\t' --bind "enter:become($become)"
+    }
+
+    if [ "$input" '!=' '0' ] ; then
+        eval "exec $input<&-"
+    fi
+
+    if [ "$do_exit" '=' '1' ] ; then
+        exit
+    fi
+}
+
+
+pushd "$HOME/.scripts/auto_fzf" &>/dev/null
+for script in $(
+    find . -maxdepth 1 -mindepth 1 -type f -executable | cut -c 3-
+)
+do
+    eval "alias $script='auto_fzf $HOME/.scripts/auto_fzf/$script'"
+done
+unset script
+popd &>/dev/null
+
+# helm-inspect() {
+#     cd "$( helm_inspect "$@" )"
+# }
